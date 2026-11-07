@@ -1,0 +1,91 @@
+import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Emergency, getMine, list } from '../../../api'
+
+const statusNames: Record<string, string> = {
+  REQUESTED: 'Solicitação recebida', ACKNOWLEDGED: 'Atendimento confirmado',
+  RESOURCE_ASSIGNED: 'Equipe atribuída', EN_ROUTE: 'Equipe em deslocamento',
+  ON_SCENE: 'Equipe no local', CLOSED: 'Atendimento encerrado',
+  CANCEL_REQUESTED: 'Cancelamento solicitado', CANCELLED: 'Atendimento cancelado',
+}
+
+export function CitizenHomePage() {
+  const [requests, setRequests] = useState<Emergency[]>([])
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
+  const refresh = useCallback(async () => {
+    setError('')
+    setLoading(true)
+    try {
+      setRequests(list(await getMine()))
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível carregar as solicitações.')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+  useEffect(() => { void refresh() }, [refresh])
+  const current = requests.find((request) => !['CLOSED', 'CANCELLED'].includes(request.status))
+
+  return (
+    <div className="page">
+      <div className="page-heading">
+        <div>
+          <div className="eyebrow">ÁREA DO CIDADÃO</div>
+          <h1>Olá, vamos por partes.</h1>
+          <p>Acompanhe suas solicitações e mantenha suas informações atualizadas.</p>
+        </div>
+      </div>
+
+      <div className="citizen-actions">
+        <Link className="action-card action-main" to="/patient/request">
+          <span className="action-icon">+</span>
+          <span><strong>Nova solicitação</strong><small>Revise a localização antes de confirmar</small></span>
+          <span aria-hidden="true">→</span>
+        </Link>
+        <Link className="action-card" to="/patient/profile">
+          <span className="action-icon teal">♡</span>
+          <span><strong>Meu perfil</strong><small>Endereço e informações de saúde</small></span>
+          <span aria-hidden="true">→</span>
+        </Link>
+      </div>
+
+      {error && <p className="error" role="alert">{error}</p>}
+      {current && (
+        <section className="card current-case">
+          <div>
+            <div className="eyebrow">SOLICITAÇÃO ATIVA</div>
+            <h2>{statusNames[current.status] || current.status}</h2>
+            <p className="muted">ID {current.id}</p>
+          </div>
+          <Link className="secondary" to={`/patient/emergencies/${current.id}`}>Acompanhar solicitação</Link>
+        </section>
+      )}
+
+      <section className="section">
+        <div className="section-heading">
+          <h2>Solicitações recentes</h2>
+          <button className="text-button" onClick={() => void refresh()} disabled={loading}>Atualizar</button>
+        </div>
+        {loading ? <p role="status">Carregando solicitações…</p> : requests.length === 0 ? (
+          <div className="empty card">
+            <span className="empty-icon">✓</span>
+            <h3>Nenhuma solicitação registrada</h3>
+            <p>Em uma emergência, ligue 192.</p>
+          </div>
+        ) : (
+          <div className="case-list">
+            {requests.map((request) => (
+              <Link className="case-row card" key={request.id} to={`/patient/emergencies/${request.id}`}>
+                <span>
+                  <strong>{statusNames[request.status] || request.status}</strong>
+                  <small>{new Date(request.createdAt).toLocaleString('pt-BR')}</small>
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}
