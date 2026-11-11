@@ -38,6 +38,10 @@ O ID de hospital para vinculação pela central é `10000000-0000-4000-8000-0000
 
 O painel do hospital inicia com três ocorrências de exemplo, cada uma com perfil clínico sintético e estado diferente. O seed é idempotente e serve apenas para demonstração local.
 
+A central também inicia com quatro ambulâncias de exemplo, entre disponíveis, ocupadas e fora de operação. Na tela central é possível alterar o estado e cadastrar veículos; a área do hospital permite cadastrar funcionários da ambulância e pacientes. Esses cadastros ficam restritos à instituição da sessão.
+
+O seed também preenche a equipe com dois nomes e a lista do hospital com dois pacientes sintéticos, sem telefones.
+
 O perfil **Administrador técnico** (`admin@vitalink.local`) abre um painel restrito com contagens agregadas de contas, instituições, ocorrências e solicitações de exclusão pendentes. O painel não exibe dados pessoais ou clínicos.
 
 Na área do paciente há um painel de **ligações simuladas** para experimentar chamadas fictícias da central e do hospital. Atender, recusar e encerrar só atualiza o histórico temporário da tela; não usa telefonia nem faz contato real.

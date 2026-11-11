@@ -1,12 +1,14 @@
 package br.com.vitalink.shared.api;
 
 import br.com.vitalink.modules.emergencies.EmergencyStatus;
+import br.com.vitalink.modules.fleet.AmbulanceStatus;
 
 import br.com.vitalink.shared.domain.Role;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,6 +58,15 @@ public final class Api {
                          String notes, boolean selfReported, Instant updatedAt) {}
     public record TimelineEvent(String oldStatus, EmergencyStatus status, Role actorRole, String actorLabel, Instant occurredAt) {}
     public record AdminOverview(long users, long institutions, long emergencies, long openEmergencies, long pendingDeletions) {}
+    public record AmbulanceRequest(@NotBlank @Size(max=24) String code) {}
+    public record AmbulanceStatusRequest(@NotNull AmbulanceStatus status) {}
+    public record AmbulanceResponse(UUID id, String code, AmbulanceStatus status) {}
+    public record AmbulanceCrewRequest(@NotBlank @Size(max=120) String name, @NotBlank @Size(max=80) String position,
+                                      @Size(max=30) String phone) {}
+    public record AmbulanceCrewResponse(UUID id, String name, String position, String phone, Instant createdAt) {}
+    public record HospitalPatientRequest(@NotBlank @Size(max=120) String name, @NotNull @Past LocalDate birthDate,
+                                         @Size(max=30) String phone) {}
+    public record HospitalPatientResponse(UUID id, String name, LocalDate birthDate, String phone, Instant createdAt) {}
     public record ErrorResponse(String code, String title, String detail, Instant timestamp) {}
     public enum LocationSource { BROWSER, MANUAL }
 }

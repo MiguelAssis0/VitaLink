@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Emergency, getEvents, getHospital, getMedicalSummary, TimelineEvent, list } from '../../../api'
+import { HospitalRegistryPanel } from './HospitalRegistryPanel'
 
 type MedicalSummary = {
   patientDisplayName: string
@@ -12,13 +13,14 @@ type MedicalSummary = {
 }
 
 const statusLabel: Record<string, string> = {
-  REQUESTED: 'Novo', ACKNOWLEDGED: 'Recebido', RESOURCE_ASSIGNED: 'Equipe atribuída',
+  REQUESTED: 'Novo', ACKNOWLEDGED: 'Recebido', RESOURCE_ASSIGNED: 'Preparando saída',
   EN_ROUTE: 'Em deslocamento', ON_SCENE: 'No local', CLOSED: 'Encerrado',
   CANCEL_REQUESTED: 'Cancelamento solicitado', CANCELLED: 'Cancelado',
 }
 const actorLabel = { PATIENT: 'Cidadão', DISPATCHER: 'Central', HOSPITAL_STAFF: 'Hospital', DEMO_ADMIN: 'Administração' }
 
 export function HospitalPage() {
+  const [section, setSection] = useState<'cases' | 'crew' | 'patients'>('cases')
   const [cases, setCases] = useState<Emergency[]>([])
   const [selectedId, setSelectedId] = useState('')
   const [events, setEvents] = useState<TimelineEvent[]>([])
@@ -83,8 +85,13 @@ export function HospitalPage() {
       <div><h1>Ocorrências vinculadas</h1><p>Consulte as informações compartilhadas de cada atendimento.</p></div>
       <button className="secondary" type="button" onClick={() => void refresh()} disabled={loading}>Atualizar lista</button>
     </header>
+    <nav className="button-row wrap hospital-sections" aria-label="Seções do hospital">
+      <button className={section === 'cases' ? 'primary' : 'secondary'} type="button" aria-pressed={section === 'cases'} onClick={() => setSection('cases')}>Ocorrências</button>
+      <button className={section === 'crew' ? 'primary' : 'secondary'} type="button" aria-pressed={section === 'crew'} onClick={() => setSection('crew')}>Funcionários da ambulância</button>
+      <button className={section === 'patients' ? 'primary' : 'secondary'} type="button" aria-pressed={section === 'patients'} onClick={() => setSection('patients')}>Pacientes</button>
+    </nav>
     {error && <p className="error" role="alert">{error}</p>}
-    <div className="institution-layout">
+    {section === 'cases' ? <div className="institution-layout">
       <nav className="case-list" aria-label="Ocorrências vinculadas">
         {loading && <div className="card empty">Carregando ocorrências…</div>}
         {!loading && cases.length === 0 && <div className="card empty"><h3>Nenhuma ocorrência vinculada</h3><p>Ocorrências autorizadas aparecerão nesta lista.</p></div>}
@@ -120,6 +127,6 @@ export function HospitalPage() {
           ))}
         </ol>
       </article>}
-    </div>
+    </div> : <HospitalRegistryPanel registry={section} />}
   </section>
 }

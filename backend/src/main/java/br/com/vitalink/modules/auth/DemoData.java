@@ -9,6 +9,13 @@ import br.com.vitalink.modules.emergencies.EmergencyRepository;
 import br.com.vitalink.modules.emergencies.EmergencyStatus;
 import br.com.vitalink.modules.emergencies.StatusEvent;
 import br.com.vitalink.modules.emergencies.StatusEventRepository;
+import br.com.vitalink.modules.fleet.Ambulance;
+import br.com.vitalink.modules.fleet.AmbulanceRepository;
+import br.com.vitalink.modules.fleet.AmbulanceStatus;
+import br.com.vitalink.modules.hospital.AmbulanceCrewMember;
+import br.com.vitalink.modules.hospital.AmbulanceCrewRepository;
+import br.com.vitalink.modules.hospital.HospitalPatient;
+import br.com.vitalink.modules.hospital.HospitalPatientRepository;
 import br.com.vitalink.modules.patients.MedicalProfile;
 import br.com.vitalink.modules.patients.MedicalProfileRepository;
 import br.com.vitalink.shared.domain.Role;
@@ -27,7 +34,9 @@ public class DemoData {
     private record DemoCase(String name, EmergencyStatus status, String condition, String notes) {}
     @Bean ApplicationRunner seedDemo(UserRepository users, InstitutionRepository institutions, MedicalProfileRepository profiles,
                                       EmergencyRepository emergencies, AccessGrantRepository grants, StatusEventRepository events,
-                                      PasswordEncoder encoder, @Value("${app.demo-mode:true}") boolean demoMode) {
+                                      AmbulanceRepository ambulances, AmbulanceCrewRepository crew, HospitalPatientRepository patients,
+                                      PasswordEncoder encoder,
+                                      @Value("${app.demo-mode:true}") boolean demoMode) {
         return args -> {
             if (!demoMode) throw new IllegalStateException("VitaLink supports DEMO_MODE=true only; real emergency dispatch is not implemented.");
             if (users.count() == 0) {
@@ -45,7 +54,46 @@ public class DemoData {
                 profiles.save(profile);
             }
             seedHospitalCases(users, institutions, profiles, emergencies, grants, events, encoder);
+            seedAmbulances(institutions, ambulances);
+            seedHospitalRegistry(institutions, crew, patients);
         };
+    }
+
+    private static void seedHospitalRegistry(InstitutionRepository institutions, AmbulanceCrewRepository crew,
+                                            HospitalPatientRepository patients) {
+        var hospital=institutions.findById(Institution.DEMO_HOSPITAL_ID).orElseThrow();
+        if (!crew.existsById(UUID.fromString("60000000-0000-4000-8000-000000000001"))) {
+            var member=new AmbulanceCrewMember(hospital,"Camila Exemplo","Socorrista","");
+            member.id=UUID.fromString("60000000-0000-4000-8000-000000000001");
+            crew.save(member);
+        }
+        if (!crew.existsById(UUID.fromString("60000000-0000-4000-8000-000000000002"))) {
+            var member=new AmbulanceCrewMember(hospital,"Bruno Exemplo","Condutor","");
+            member.id=UUID.fromString("60000000-0000-4000-8000-000000000002");
+            crew.save(member);
+        }
+        if (!patients.existsById(UUID.fromString("70000000-0000-4000-8000-000000000001"))) {
+            var patient=new HospitalPatient(hospital,"Paciente Exemplo A",java.time.LocalDate.of(1990,1,1),"");
+            patient.id=UUID.fromString("70000000-0000-4000-8000-000000000001");
+            patients.save(patient);
+        }
+        if (!patients.existsById(UUID.fromString("70000000-0000-4000-8000-000000000002"))) {
+            var patient=new HospitalPatient(hospital,"Paciente Exemplo B",java.time.LocalDate.of(1985,6,15),"");
+            patient.id=UUID.fromString("70000000-0000-4000-8000-000000000002");
+            patients.save(patient);
+        }
+    }
+
+    private static void seedAmbulances(InstitutionRepository institutions, AmbulanceRepository ambulances) {
+        var central=institutions.findById(Institution.DEMO_CENTRAL_ID).orElseThrow();
+        var codes=java.util.List.of("V-01","V-02","V-03","V-04");
+        var statuses=java.util.List.of(AmbulanceStatus.AVAILABLE,AmbulanceStatus.OCCUPIED,AmbulanceStatus.OUT_OF_SERVICE,AmbulanceStatus.AVAILABLE);
+        for (int i=0;i<codes.size();i++) {
+            if (ambulances.existsByCentralIdAndCodeIgnoreCase(central.getId(),codes.get(i))) continue;
+            var ambulance=new Ambulance(central,codes.get(i),statuses.get(i));
+            ambulance.id=UUID.fromString("50000000-0000-4000-8000-"+String.format("%012d",i+1));
+            ambulances.save(ambulance);
+        }
     }
 
     private static void seedHospitalCases(UserRepository users, InstitutionRepository institutions, MedicalProfileRepository profiles,

@@ -6,8 +6,8 @@ import './MockCallsPanel.css'
 
 const statusNames: Record<string, string> = {
   REQUESTED: 'Solicitação recebida', ACKNOWLEDGED: 'Atendimento confirmado',
-  RESOURCE_ASSIGNED: 'Equipe atribuída', EN_ROUTE: 'Equipe em deslocamento',
-  ON_SCENE: 'Equipe no local', CLOSED: 'Atendimento encerrado',
+  RESOURCE_ASSIGNED: 'Preparando saída', EN_ROUTE: 'Ambulância em deslocamento',
+  ON_SCENE: 'Ambulância no local', CLOSED: 'Atendimento encerrado',
   CANCEL_REQUESTED: 'Cancelamento solicitado', CANCELLED: 'Atendimento cancelado',
 }
 

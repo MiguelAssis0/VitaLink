@@ -22,8 +22,12 @@ Base `/api/v1`. JSON, autenticação por sessão, CSRF em mutações; erros `app
 | GET | `/central/emergencies` | dispatcher | Fila da central com escopo institucional |
 | POST | `/central/emergencies/{id}/transitions` | dispatcher | Mudança de estado permitida |
 | POST | `/central/emergencies/{id}/hospital-assignment` | dispatcher | Vincular hospital fictício e grant limitado |
+| GET/POST | `/central/ambulances` | dispatcher | Consultar frota e cadastrar ambulâncias; novas unidades começam disponíveis |
+| PUT | `/central/ambulances/{id}/status` | dispatcher | Atualizar para disponível, ocupada ou fora de operação |
 | GET | `/hospital/emergencies` | hospital staff | Somente ocorrências atribuídas |
 | GET | `/hospital/emergencies/{id}/medical-summary` | hospital staff | Resumo médico mínimo, auditado |
+| GET/POST | `/hospital/ambulance-crew` | hospital staff | Consultar e cadastrar funcionários da equipe de ambulância |
+| GET/POST | `/hospital/patients` | hospital staff | Consultar e cadastrar pacientes, por hospital |
 | GET | `/emergencies/{id}/events` | autorizado | Timeline |
 
 ## Lacunas conhecidas

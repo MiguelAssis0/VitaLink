@@ -13,7 +13,7 @@ Dados básicos, perfil médico opcional, contatos, autorização clara de tratam
 Localização com fallback, confirmação explícita, persistência, idempotência, status `REQUESTED`, timeline e detalhes. 'Ligar 192' em todo o fluxo.
 
 ## Etapa 4 — Central
-Fila e detalhes, transições, atribuição de recurso fictício, audit events, conflitos concorrentes.
+Fila e detalhes, transições, visão e atualização de disponibilidade da frota, audit events, conflitos concorrentes.
 
 ## Etapa 5 — Hospital
 Vincular hospital fictício, grants, resumo mínimo, revogação/expiração e testes de acesso entre instituições.

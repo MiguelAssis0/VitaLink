@@ -11,6 +11,9 @@ export type BasicProfile = { displayName: string; email: string; phone: string; 
 export type EmergencyContact = { id?: string; name: string; phone: string; relationship: string }
 export type PrivacyRequest = { id: string; type: 'EXPORT' | 'DELETION'; status: 'COMPLETED' | 'PENDING'; createdAt: string; completedAt?: string }
 export type AdminOverview = { users: number; institutions: number; emergencies: number; openEmergencies: number; pendingDeletions: number }
+export type Ambulance = { id: string; code: string; status: 'AVAILABLE' | 'OCCUPIED' | 'OUT_OF_SERVICE' }
+export type AmbulanceCrewMember = { id: string; name: string; position: string; phone: string; createdAt: string }
+export type HospitalPatient = { id: string; name: string; birthDate: string; phone: string; createdAt: string }
 
 const base = '/api/v1'
 let csrfValue = ''
@@ -66,6 +69,13 @@ export const getEmergencyContacts = () => api<EmergencyContact[]>('/patients/me/
 export const saveEmergencyContacts = (contacts: EmergencyContact[]) => api<EmergencyContact[]>('/patients/me/emergency-contacts', { method: 'PUT', body: JSON.stringify(contacts.map(({ name, phone, relationship }) => ({ name, phone, relationship }))) })
 export const getPrivacyRequests = () => api<PrivacyRequest[]>('/patients/me/privacy-requests')
 export const getAdminOverview = () => api<AdminOverview>('/admin/overview')
+export const getAmbulances = () => api<Ambulance[]>('/central/ambulances')
+export const addAmbulance = (code: string) => api<Ambulance>('/central/ambulances', { method: 'POST', body: JSON.stringify({ code }) })
+export const updateAmbulanceStatus = (id: string, status: Ambulance['status']) => api<Ambulance>(`/central/ambulances/${encodeURIComponent(id)}/status`, { method: 'PUT', body: JSON.stringify({ status }) })
+export const getAmbulanceCrew = () => api<AmbulanceCrewMember[]>('/hospital/ambulance-crew')
+export const addAmbulanceCrewMember = (member: Omit<AmbulanceCrewMember, 'id' | 'createdAt'>) => api<AmbulanceCrewMember>('/hospital/ambulance-crew', { method: 'POST', body: JSON.stringify(member) })
+export const getHospitalPatients = () => api<HospitalPatient[]>('/hospital/patients')
+export const addHospitalPatient = (patient: Omit<HospitalPatient, 'id' | 'createdAt'>) => api<HospitalPatient>('/hospital/patients', { method: 'POST', body: JSON.stringify(patient) })
 export const requestPrivacyAction = (type: PrivacyRequest['type']) => api<{ request: PrivacyRequest; export: unknown | null }>('/patients/me/privacy-requests', { method: 'POST', body: JSON.stringify({ type }) })
 
 export function createEmergency(payload: { location: { source: 'MANUAL' | 'BROWSER'; address: string; reference: string; latitude?: number; longitude?: number; accuracyMeters?: number }; notes: string }, idempotencyKey: string) {

@@ -8,7 +8,7 @@ Demonstrar de ponta a ponta, com atores fictícios, o fluxo: cidadão autenticad
 
 ## Personas
 - Cidadão: preenche dados mínimos; aciona emergência simulada em poucos toques.
-- Operador central fictícia: visualiza fila de chamados, verifica localização, atribui equipe fictícia, vincula hospital fictício.
+- Operador da central fictícia: visualiza a fila e a frota, atualiza a disponibilidade das ambulâncias, registra deslocamento e vincula hospital fictício.
 - Profissional hospitalar fictício: vê informações da ocorrência vinculada e apenas o resumo médico necessário.
 - Administrador técnico: gerencia contas de instituições sintéticas; NÃO tem acesso padrão a dados médicos em texto claro.
 

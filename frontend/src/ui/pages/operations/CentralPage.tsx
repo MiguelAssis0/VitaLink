@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, assignHospital, Emergency, getCentral, getEvents, TimelineEvent, transition, list } from '../../../api'
+import { AmbulanceFleetPanel } from './AmbulanceFleetPanel'
 
 type MedicalSummary = {
   patientDisplayName: string
@@ -13,14 +14,14 @@ type MedicalSummary = {
 const hospitalId = '10000000-0000-4000-8000-000000000002'
 const nextStatus: Record<string, { value: string; label: string }> = {
   REQUESTED: { value: 'ACKNOWLEDGED', label: 'Confirmar recebimento' },
-  ACKNOWLEDGED: { value: 'RESOURCE_ASSIGNED', label: 'Atribuir equipe' },
+  ACKNOWLEDGED: { value: 'EN_ROUTE', label: 'Registrar saída' },
   RESOURCE_ASSIGNED: { value: 'EN_ROUTE', label: 'Registrar saída' },
   EN_ROUTE: { value: 'ON_SCENE', label: 'Registrar chegada' },
   ON_SCENE: { value: 'CLOSED', label: 'Encerrar ocorrência' },
   CANCEL_REQUESTED: { value: 'CANCELLED', label: 'Confirmar cancelamento' },
 }
 const statusLabel: Record<string, string> = {
-  REQUESTED: 'Novo', ACKNOWLEDGED: 'Recebido', RESOURCE_ASSIGNED: 'Equipe atribuída',
+  REQUESTED: 'Novo', ACKNOWLEDGED: 'Recebido', RESOURCE_ASSIGNED: 'Preparando saída',
   EN_ROUTE: 'Em deslocamento', ON_SCENE: 'No local', CLOSED: 'Encerrado',
   CANCEL_REQUESTED: 'Cancelamento solicitado', CANCELLED: 'Cancelado',
 }
@@ -118,6 +119,7 @@ export function CentralPage() {
       <button className="secondary" type="button" onClick={() => void refresh()} disabled={loading}>Atualizar lista</button>
     </header>
     {error && <p className="error" role="alert">{error}</p>}
+    <AmbulanceFleetPanel />
     <div className="institution-layout">
       <nav className="case-list" aria-label="Lista de ocorrências">
         {loading && <div className="card empty">Carregando ocorrências…</div>}

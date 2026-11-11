@@ -16,7 +16,7 @@
 
 **RF08 — Ocorrências e idempotência.** Gerar identificador não sequencial; proteger contra duplo clique e retry por `Idempotency-Key`; usuário vê seu histórico e status. No máximo uma ocorrência simulada aberta por usuário, como regra de demonstração (com resposta 409 e link para ocorrência existente).
 
-**RF09 — Central.** Lista paginada, pesquisa por ID/status, detalhes com localização, resumo médico mínimo quando autorizado, registro de ações. A central confirma recebimento, atribui recurso simulado, marca deslocamento, chegada e encerramento. Transições válidas verificadas no backend.
+**RF09 — Central.** Lista paginada, pesquisa por ID/status, detalhes com localização, resumo médico mínimo quando autorizado, registro de ações e visão da frota. A central confirma recebimento, atualiza manualmente o estado das ambulâncias e registra deslocamento, chegada e encerramento sem atribuir equipe ao paciente. Transições válidas verificadas no backend.
 
 **RF10 — Hospital.** Só enxerga ocorrência atribuída por operador autorizado da mesma central de demonstração e informações estritamente necessárias, com expiração da autorização após encerramento + janela de retenção definida em política. Não pode enumerar pacientes/ocorrências de outras instituições.
 
