@@ -19,11 +19,13 @@ docker compose up --build
 
 Abra <http://localhost:5173>. A API local responde em <http://localhost:8080>. O PostgreSQL é publicado somente em `127.0.0.1`. As credenciais padrão do Compose são exclusivamente locais e sintéticas; não reutilize esses valores fora do computador de desenvolvimento.
 
+Para recuperar uma senha no ambiente local, use **Esqueci minha senha** na tela de login e consulte a caixa de entrada fictícia do Mailpit em <http://localhost:8025>. O link expira em 30 minutos e não é exibido pela API.
+
 Para encerrar, use `Ctrl+C` e `docker compose down`. Para apagar também o banco sintético, use `docker compose down -v`.
 
 ## Demonstração
 
-O seed local cria contas sintéticas com a mesma senha `Demo1234!`. Também é possível cadastrar uma conta de paciente adulto pela tela inicial; o ambiente local não envia e-mails:
+O seed local cria contas sintéticas com a mesma senha `Demo1234!`. Também é possível cadastrar uma conta de paciente adulto pela tela inicial; cadastro não exige confirmação por email. Emails de recuperação de senha são enviados apenas à caixa fictícia local do Mailpit:
 
 | Perfil | E-mail |
 |---|---|
@@ -33,6 +35,12 @@ O seed local cria contas sintéticas com a mesma senha `Demo1234!`. Também é p
 | Administrador técnico | `admin@vitalink.local` |
 
 O ID de hospital para vinculação pela central é `10000000-0000-4000-8000-000000000002`. Não insira dados pessoais ou médicos reais.
+
+O painel do hospital inicia com três ocorrências de exemplo, cada uma com perfil clínico sintético e estado diferente. O seed é idempotente e serve apenas para demonstração local.
+
+O perfil **Administrador técnico** (`admin@vitalink.local`) abre um painel restrito com contagens agregadas de contas, instituições, ocorrências e solicitações de exclusão pendentes. O painel não exibe dados pessoais ou clínicos.
+
+Na área do paciente há um painel de **ligações simuladas** para experimentar chamadas fictícias da central e do hospital. Atender, recusar e encerrar só atualiza o histórico temporário da tela; não usa telefonia nem faz contato real.
 
 ## Limites e segurança
 
@@ -63,4 +71,6 @@ Os requisitos completos estão em [`docs/`](docs/), com prioridade para `00-LEIA
 
 ## Estado da implementação
 
-O scaffold, cadastro/login de paciente, perfil médico, pedidos simulados idempotentes, transições, atribuição hospitalar com grant, resumo autorizado, auditoria e timeline estão implementados no código. Ainda faltam recuperação de senha, perfil básico/contatos, solicitações de exportação/exclusão, testes de integração e E2E, e revisão manual de acessibilidade e segurança. O build e os testes ainda não foram verificados neste ambiente.
+Cadastro/login e recuperação de senha, perfil básico, até três contatos de emergência, exportação JSON do titular, solicitação auditada de exclusão, perfil médico autodeclarado, pedidos simulados idempotentes, localização manual ou do navegador, polling, transições, atribuição hospitalar com grant, resumo autorizado, auditoria, timeline, cancelamento solicitado e PWA estão implementados. A exclusão fica pendente de análise e retenção, não é executada automaticamente. O CI em `.github/workflows/ci.yml` executa testes e build, `npm audit`, OWASP Dependency-Check (CVSS >= 7) e Gitleaks.
+
+Ainda pendem processamento administrativo de solicitações de exclusão, concorrência/IDOR com testes de integração, testes E2E e revisão manual de acessibilidade e segurança. A recuperação local usa Mailpit e não configura envio de email real. Não trate este protótipo como serviço de emergência real.

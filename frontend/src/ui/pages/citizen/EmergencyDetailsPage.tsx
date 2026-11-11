@@ -57,6 +57,7 @@ export function EmergencyDetailsPage() {
       {loading && <p role="status">Carregando solicitação…</p>}
       {!loading && request && (
         <section className="card case-detail">
+          <span className="sim-badge">SIMULAÇÃO · NENHUMA AMBULÂNCIA REAL FOI ACIONADA</span>
           <h1>{statusNames[request.status] || request.status}</h1>
           <p className="muted">Solicitação {request.id}</p>
           <h2>Histórico de atualizações</h2>
@@ -75,6 +76,9 @@ export function EmergencyDetailsPage() {
             ))}
           </ol>
           {events.length === 0 && <p className="muted">Nenhuma atualização disponível.</p>}
+          {!['CLOSED', 'CANCELLED', 'CANCEL_REQUESTED'].includes(request.status) && (
+            <p className="hint">O pedido de cancelamento é fictício e será tratado pela central de demonstração; não cancela atendimento real.</p>
+          )}
           {!['CLOSED', 'CANCELLED', 'CANCEL_REQUESTED'].includes(request.status) && (
             <button className="secondary" disabled={busy || !navigator.onLine} onClick={() => void cancel()}>
               {busy ? 'Enviando…' : 'Solicitar cancelamento'}

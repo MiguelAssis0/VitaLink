@@ -27,7 +27,7 @@ export function AppShell({ children, user, offline, onSignOut }: AppShellProps) 
       <footer className="emergency-footer">
         <div>
           <strong>Precisa de atendimento agora?</strong>
-          <span>Em uma emergência, ligue 192.</span>
+          <span>Somente ligar para 192 realiza contato com o serviço de emergência.</span>
         </div>
         <a className="phone-link" href="tel:192">Ligar 192</a>
       </footer>

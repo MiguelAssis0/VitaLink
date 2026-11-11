@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Emergency, getMine, list } from '../../../api'
+import { MockCallsPanel } from './MockCallsPanel'
+import './MockCallsPanel.css'
 
 const statusNames: Record<string, string> = {
   REQUESTED: 'Solicitação recebida', ACKNOWLEDGED: 'Atendimento confirmado',
@@ -49,6 +51,8 @@ export function CitizenHomePage() {
           <span aria-hidden="true">→</span>
         </Link>
       </div>
+
+      <MockCallsPanel />
 
       {error && <p className="error" role="alert">{error}</p>}
       {current && (

@@ -23,6 +23,8 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Dependency vulnerability scan
+        run: npm audit --audit-level=high
 
   backend:
     runs-on: ubuntu-latest
@@ -37,6 +39,8 @@ jobs:
           java-version: 21
           cache: maven
       - run: mvn --batch-mode verify
+      - name: Dependency vulnerability scan
+        run: mvn --batch-mode org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7
 
   secrets:
     runs-on: ubuntu-latest

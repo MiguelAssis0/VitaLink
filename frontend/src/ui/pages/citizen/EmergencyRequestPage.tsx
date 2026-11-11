@@ -67,8 +67,9 @@ export function EmergencyRequestPage() {
       <div className="page narrow">
         <section className="success-card card">
           <span className="success-icon">✓</span>
-          <h1>Solicitação registrada</h1>
-          <p><strong>Este registro não encaminhou uma equipe de emergência.</strong></p>
+          <span className="sim-badge">SIMULAÇÃO</span>
+          <h1>Pedido simulado registrado</h1>
+          <p><strong>Nenhuma ambulância real foi acionada.</strong></p>
           <p className="muted">Identificador: {created.id}</p>
           <div className="button-row">
             <button className="primary" onClick={() => navigate(`/patient/emergencies/${created.id}`)}>
@@ -84,7 +85,7 @@ export function EmergencyRequestPage() {
   return (
     <div className="page narrow">
       <Link className="back-link" to="/patient">← Início</Link>
-      <div className="eyebrow">NOVA SOLICITAÇÃO</div>
+      <div className="eyebrow">NOVA SOLICITAÇÃO · SIMULAÇÃO</div>
       <h1>Solicitar atendimento</h1>
       <form className="card form-card" onSubmit={submit}>
         <div className="form-section">
@@ -143,7 +144,7 @@ export function EmergencyRequestPage() {
         </label>
         {error && <p className="error" role="alert">{error}</p>}
         <button className="primary full" disabled={busy || !confirmed || !navigator.onLine}>
-          {busy ? 'Registrando…' : 'Registrar solicitação'}
+          {busy ? 'Registrando…' : 'Criar pedido de simulação'}
         </button>
       </form>
     </div>

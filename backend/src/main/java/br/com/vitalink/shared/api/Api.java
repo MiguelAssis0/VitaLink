@@ -13,6 +13,9 @@ import java.util.UUID;
 public final class Api {
     private Api() {}
     public record LoginRequest(@NotBlank @Email String email, @NotBlank @Size(max=200) String password) {}
+    public record PasswordResetRequest(@NotBlank @Email @Size(max=254) String email) {}
+    public record PasswordResetConfirmRequest(@NotBlank @Size(max=100) String token,
+            @NotBlank @Size(min=8,max=200) @Pattern(regexp="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,200}$") String password) {}
     public record RegisterRequest(@NotBlank @Size(max=120) String displayName, @NotBlank @Email @Size(max=254) String email,
                                   @NotBlank @Size(min=8,max=200) @Pattern(regexp="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,200}$") String password,
                                   @NotNull @AssertTrue Boolean adultConfirmed) {}
@@ -34,9 +37,25 @@ public final class Api {
                                  @Size(max=1000) String conditions, @Size(max=1000) String notes) {}
     public record MedicalProfileResponse(String address, String allergies, String medications, String conditions, String notes,
                                   boolean selfReported, Instant updatedAt) {}
+    public record BasicProfileRequest(@NotBlank @Size(max=120) String displayName, @Size(max=30) String phone, @Size(max=240) String address) {}
+    public record BasicProfileResponse(String displayName, String email, String phone, String address) {}
+    public record EmergencyContactRequest(@NotBlank @Size(max=120) String name, @NotBlank @Size(max=30) String phone,
+            @Size(max=80) String relationship) {}
+    public record EmergencyContactResponse(UUID id, String name, String phone, String relationship) {}
+    public record PrivacyRequestBody(@NotNull PrivacyRequestType type) {}
+    public record PrivacyRequestResponse(UUID id, PrivacyRequestType type, String status, Instant createdAt, Instant completedAt) {}
+    public record PatientDataExport(Instant exportedAt, Instant accountCreatedAt, BasicProfileResponse profile, MedicalProfileResponse medicalProfile,
+            List<EmergencyContactResponse> emergencyContacts, List<ExportedEmergency> emergencies,
+            List<PrivacyRequestResponse> privacyRequests) {}
+    public record PrivacyRequestResult(PrivacyRequestResponse request, PatientDataExport export) {}
+    public record ExportedEmergency(UUID id, boolean simulation, EmergencyStatus status, String locationSource, String address,
+            String reference, Double latitude, Double longitude, Double accuracyMeters, String notes, Instant createdAt,
+            List<TimelineEvent> timeline) {}
+    public enum PrivacyRequestType { EXPORT, DELETION }
     public record MedicalSummary(String patientDisplayName, String allergies, String medications, String conditions,
                          String notes, boolean selfReported, Instant updatedAt) {}
     public record TimelineEvent(String oldStatus, EmergencyStatus status, Role actorRole, String actorLabel, Instant occurredAt) {}
+    public record AdminOverview(long users, long institutions, long emergencies, long openEmergencies, long pendingDeletions) {}
     public record ErrorResponse(String code, String title, String detail, Instant timestamp) {}
     public enum LocationSource { BROWSER, MANUAL }
 }

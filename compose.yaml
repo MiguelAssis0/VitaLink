@@ -26,11 +26,21 @@ services:
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
       DEMO_MODE: ${DEMO_MODE:-true}
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_FROM: ${MAIL_FROM:-no-reply@vitalink.local}
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
       db:
         condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  mailpit:
+    image: axllent/mailpit:v1.21.8
+    ports:
+      - "127.0.0.1:8025:8025"
 
   frontend:
     build: ./frontend

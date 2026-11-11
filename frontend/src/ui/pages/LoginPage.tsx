@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { login, type User } from '../../api'
 import PasswordInput from '../shared/PasswordInput'
+import './LoginPage.css'
 
 type LoginPageProps = {
   onLogin: (user: User) => void
@@ -27,16 +28,30 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   }
 
   return (
-    <div className="login-grid">
-      <section className="hero" aria-labelledby="login-title">
-        <span className="eyebrow">CIDADÃO</span>
-        <h1 id="login-title">Informações úteis, quando cada minuto importa.</h1>
-        <p>Organize suas informações e gerencie seus dados com segurança.</p>
+    <div className="login-shell">
+      <section className="login-intro" aria-labelledby="login-title">
+        <p className="login-kicker"><span className="login-monogram" aria-hidden="true">V</span> VitaLink <span className="login-kicker-divider">/</span> Área do cidadão</p>
+        <h1 id="login-title">Suas informações, sempre à mão.</h1>
+        <p className="login-lede">Organize seu perfil e acompanhe solicitações demonstrativas em um só lugar.</p>
+
+        <div className="login-points" aria-label="Sobre o VitaLink">
+          <div className="login-point">
+            <span className="login-point-number" aria-hidden="true">01</span>
+            <span><strong>Você no controle</strong><small>Revise e atualize seu perfil quando precisar.</small></span>
+          </div>
+          <div className="login-point">
+            <span className="login-point-number" aria-hidden="true">02</span>
+            <span><strong>Clareza em cada etapa</strong><small>Acompanhe o histórico das suas simulações.</small></span>
+          </div>
+        </div>
+
+        <p className="login-simulation-note"><span aria-hidden="true">i</span><span><strong>Ambiente de demonstração.</strong> Não aciona ambulâncias reais. Em uma emergência, ligue 192.</span></p>
       </section>
 
-      <section className="login-card card" aria-labelledby="login-form-title">
-        <span className="eyebrow">ÁREA DO CIDADÃO</span>
+      <section className="login-panel card" aria-labelledby="login-form-title">
+        <span className="login-panel-kicker">Bem-vindo de volta</span>
         <h2 id="login-form-title">Acessar minha conta</h2>
+        <p className="login-panel-caption">Entre com seus dados para continuar.</p>
         <form onSubmit={submit}>
           <label htmlFor="login-email">E-mail</label>
           <input
@@ -62,7 +77,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             {busy ? 'Acessando…' : 'Entrar'}
           </button>
         </form>
-        <p className="hint">Ainda não tem conta? <Link to="/register">Criar conta de cidadão</Link></p>
+        <p className="login-reset-link"><Link to="/reset-password">Esqueci minha senha</Link></p>
+        <p className="login-register-link">Ainda não tem conta? <Link to="/register">Criar conta</Link></p>
       </section>
     </div>
   )

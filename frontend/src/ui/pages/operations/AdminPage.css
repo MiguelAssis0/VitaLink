@@ -1,0 +1,26 @@
+.admin-page { max-width: 1040px; }
+.admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.admin-metric {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+}
+.admin-metric > span { color: var(--muted); font-size: 14px; font-weight: 650; }
+.admin-metric strong { color: var(--navy); font-size: 32px; line-height: 1; }
+.admin-metric small { color: var(--muted); }
+.admin-environment { margin-top: 20px; padding: 22px; }
+.admin-environment > div { display: flex; align-items: flex-start; gap: 13px; }
+.admin-environment h2 { margin: 0 0 5px; font-size: 18px; }
+.admin-environment p { margin: 0; }
+.admin-health-dot { width: 11px; height: 11px; margin-top: 5px; border-radius: 50%; background: #21865c; flex: none; }
+.admin-health-dot.unavailable { background: #b42318; }
+.admin-environment > p { margin: 16px 0 0; font-size: 14px; }
+@media (max-width: 680px) {
+  .admin-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-metric { padding: 17px; }
+}
+@media (max-width: 390px) { .admin-metrics { grid-template-columns: 1fr; } }

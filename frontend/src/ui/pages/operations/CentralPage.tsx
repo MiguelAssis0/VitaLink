@@ -114,7 +114,7 @@ export function CentralPage() {
 
   return <section className="page">
     <header className="page-heading">
-      <div><span className="eyebrow">CENTRAL DE ATENDIMENTO</span><h1>Ocorrências</h1><p>Acompanhe pedidos recebidos e atualize seus estados.</p></div>
+      <div><span className="eyebrow">CENTRAL FICTÍCIA · SIMULAÇÃO</span><h1>Ocorrências</h1><p>Acompanhe pedidos recebidos e atualize seus estados. Nenhuma equipe real será acionada.</p></div>
       <button className="secondary" type="button" onClick={() => void refresh()} disabled={loading}>Atualizar lista</button>
     </header>
     {error && <p className="error" role="alert">{error}</p>}

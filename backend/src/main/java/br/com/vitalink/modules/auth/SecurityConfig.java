@@ -43,7 +43,7 @@ public class SecurityConfig {
                 .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")))
             .securityContext(c -> c.securityContextRepository(contextRepository))
             .sessionManagement(s -> s.sessionFixation(f -> f.migrateSession()))
-            .authorizeHttpRequests(a -> a.requestMatchers("/api/v1/auth/csrf", "/api/v1/auth/login", "/api/v1/auth/register", "/actuator/health", "/error").permitAll().anyRequest().authenticated())
+            .authorizeHttpRequests(a -> a.requestMatchers("/api/v1/auth/csrf", "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/password-reset/**", "/actuator/health", "/error").permitAll().anyRequest().authenticated())
             .formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)
             .exceptionHandling(e -> e.authenticationEntryPoint((request, response, ex) -> {

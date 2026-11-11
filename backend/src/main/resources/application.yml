@@ -8,6 +8,9 @@ server:
         secure: ${SESSION_COOKIE_SECURE:false}
         same-site: lax
 spring:
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
   application:
     name: vitalink-backend
   datasource:

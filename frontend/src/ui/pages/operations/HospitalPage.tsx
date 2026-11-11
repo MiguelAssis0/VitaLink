@@ -80,7 +80,7 @@ export function HospitalPage() {
 
   return <section className="page">
     <header className="page-heading">
-      <div><span className="eyebrow">HOSPITAL</span><h1>Ocorrências vinculadas</h1><p>Consulte as informações compartilhadas para cada atendimento.</p></div>
+      <div><h1>Ocorrências vinculadas</h1><p>Consulte as informações compartilhadas de cada atendimento.</p></div>
       <button className="secondary" type="button" onClick={() => void refresh()} disabled={loading}>Atualizar lista</button>
     </header>
     {error && <p className="error" role="alert">{error}</p>}
@@ -95,7 +95,7 @@ export function HospitalPage() {
       </nav>
       {selected && <article className="card detail-panel" aria-label="Informações compartilhadas">
         <span className="eyebrow">INFORMAÇÕES COMPARTILHADAS</span>
-        <h2>Cidadão</h2>
+        <h2>{medical?.patientDisplayName || 'Cidadão'}</h2>
         {medical ? <>
           {medical.selfReported && <p className="hint">Informações de saúde informadas pelo cidadão.</p>}
           <dl>

@@ -13,6 +13,7 @@ describe('emergency contact', () => {
     render(<MemoryRouter><App /></MemoryRouter>)
     expect(await screen.findByRole('heading', { name: 'Acessar minha conta' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ligar 192' })).toHaveAttribute('href', 'tel:192')
+    expect(screen.getByRole('banner')).not.toHaveTextContent('AMBIENTE DE SIMULAÇÃO')
     const password = screen.getByLabelText('Senha')
     expect(password).toHaveAttribute('type', 'password')
     fireEvent.click(screen.getByRole('button', { name: 'Mostrar senha' }))

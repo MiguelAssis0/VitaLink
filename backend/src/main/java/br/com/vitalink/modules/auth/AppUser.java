@@ -13,6 +13,7 @@ public class AppUser {
     public String email;
     @Column(name="password_hash") public String passwordHash;
     @Column(name="display_name") public String displayName;
+    @Column(length=30) public String phone = "";
     @Enumerated(EnumType.STRING) public Role role;
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="institution_id") public Institution institution;
     @Column(name="disabled_at") public Instant disabledAt;

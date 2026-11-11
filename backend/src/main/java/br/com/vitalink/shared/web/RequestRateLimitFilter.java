@@ -35,7 +35,10 @@ public class RequestRateLimitFilter extends OncePerRequestFilter {
         if(!"POST".equals(method)) return 0;
         if(path.equals("/api/v1/auth/login")) return 10;
         if(path.equals("/api/v1/auth/register")) return 5;
+        if(path.equals("/api/v1/auth/password-reset/request")) return 5;
+        if(path.equals("/api/v1/auth/password-reset/confirm")) return 10;
         if(path.equals("/api/v1/emergencies")) return 5;
+        if(path.equals("/api/v1/patients/me/privacy-requests")) return 5;
         return 0;
     }
     static final class Window {

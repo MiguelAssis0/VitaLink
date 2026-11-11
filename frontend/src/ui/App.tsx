@@ -4,12 +4,14 @@ import { getMe, logout } from '../api'
 import type { User } from '../api'
 import { CentralPage } from './pages/operations/CentralPage'
 import { HospitalPage } from './pages/operations/HospitalPage'
+import { AdminPage } from './pages/operations/AdminPage'
 import { CitizenHomePage } from './pages/citizen/CitizenHomePage'
 import { EmergencyRequestPage } from './pages/citizen/EmergencyRequestPage'
 import { HealthProfilePage } from './pages/citizen/HealthProfilePage'
 import { EmergencyDetailsPage } from './pages/citizen/EmergencyDetailsPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { PasswordResetPage } from './pages/PasswordResetPage'
 import { AppShell } from './shared/AppShell'
 import { isOffline } from './shared/is-offline'
 import { ProtectedRoute } from './shared/ProtectedRoute'
@@ -59,12 +61,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={user ? <Navigate to={roleHome(user.role)} replace /> : <LoginPage onLogin={signIn} />} />
         <Route path="/register" element={user ? <Navigate to={roleHome(user.role)} replace /> : <RegisterPage />} />
+        <Route path="/reset-password" element={user ? <Navigate to={roleHome(user.role)} replace /> : <PasswordResetPage />} />
         <Route path="/patient" element={<ProtectedRoute user={user} role="PATIENT"><CitizenHomePage /></ProtectedRoute>} />
         <Route path="/patient/request" element={<ProtectedRoute user={user} role="PATIENT"><EmergencyRequestPage /></ProtectedRoute>} />
         <Route path="/patient/profile" element={<ProtectedRoute user={user} role="PATIENT"><HealthProfilePage /></ProtectedRoute>} />
         <Route path="/patient/emergencies/:id" element={<ProtectedRoute user={user} role="PATIENT"><EmergencyDetailsPage /></ProtectedRoute>} />
         <Route path="/central" element={<ProtectedRoute user={user} role="DISPATCHER"><CentralPage /></ProtectedRoute>} />
         <Route path="/hospital" element={<ProtectedRoute user={user} role="HOSPITAL_STAFF"><HospitalPage /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute user={user} role="DEMO_ADMIN"><AdminPage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to={user ? roleHome(user.role) : '/'} replace state={{ from: location.pathname }} />} />
       </Routes>
     </AppShell>

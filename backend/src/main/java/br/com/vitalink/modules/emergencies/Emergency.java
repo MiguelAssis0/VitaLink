@@ -26,5 +26,5 @@ public class Emergency {
     @Column(name="created_at") public Instant createdAt = Instant.now();
     @Column(name="updated_at") public Instant updatedAt = Instant.now();
     @Column(name="closed_at") public Instant closedAt;
-    protected Emergency() {}
+    public Emergency() {}
 }
