@@ -8,6 +8,56 @@
   gap: clamp(38px, 7vw, 92px);
 }
 
+.login-main {
+  background: linear-gradient(100deg, #f7f9fbea 0%, #f7f9fbcf 52%, #f7f9fb8c 100%), url('/images/login-background.webp') center 54% / cover;
+}
+
+.login-dark {
+  background-image: linear-gradient(100deg, #071d2be8 0%, #071d2bc9 54%, #071d2b99 100%), url('/images/login-background.webp');
+}
+
+.login-topbar { position: relative; z-index: 1; }
+
+.login-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 13px;
+  border: 1px solid #ffffff6b;
+  border-radius: 999px;
+  background: #ffffff14;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.login-theme-toggle:hover { background: #ffffff29; }
+.login-theme-toggle svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.login-main.login-dark .login-intro h1,
+.login-main.login-dark .login-point strong { color: #f2f8fa; }
+
+.login-main.login-dark .login-kicker,
+.login-main.login-dark .login-lede,
+.login-main.login-dark .login-point small,
+.login-main.login-dark .login-simulation-note { color: #d0e0e7; }
+
+.login-main.login-dark .login-points,
+.login-main.login-dark .login-register-link { border-color: #ffffff40; }
+
+.login-main.login-dark .login-monogram { background: #ffffff1c; border-color: #ffffff55; color: #b6eeea; }
+.login-main.login-dark .login-panel { background: #102b3b; border-color: #ffffff24; color: #edf5f7; }
+.login-main.login-dark .login-panel h2,
+.login-main.login-dark .login-panel label { color: #edf5f7; }
+.login-main.login-dark .login-panel-caption,
+.login-main.login-dark .login-register-link { color: #c1d2da; }
+.login-main.login-dark .login-panel input:not([type="checkbox"]) { background: #091e2b; border-color: #506a78; color: #f4f8fa; }
+.login-main.login-dark .login-reset-link a,
+.login-main.login-dark .login-register-link a { color: #8de1dc; }
+.login-footer-dark { background: #102b3b; border-color: #ffffff24; color: #edf5f7; }
+.login-footer-dark span { color: #c1d2da; }
+
 .login-intro {
   max-width: 540px;
   padding: 32px 0;
@@ -216,6 +266,9 @@
 }
 
 @media (max-width: 760px) {
+  .login-main { background-position: center; }
+  .login-dark { background-image: linear-gradient(180deg, #071d2bd9 0%, #071d2bbd 100%), url('/images/login-background.webp'); }
+
   .login-shell {
     width: min(520px, 100%);
     min-height: 0;
