@@ -15,7 +15,7 @@ class AuthServiceTest {
         var users=mock(UserRepository.class); var encoder=mock(PasswordEncoder.class);
         when(users.existsByEmailIgnoreCase("patient@example.test")).thenReturn(false);
         when(encoder.encode("StrongPass1!")).thenReturn("hashed-password");
-        var service=new AuthService(mock(AuthenticationManager.class),mock(SecurityContextRepository.class),users,encoder);
+        var service=new AuthService(mock(AuthenticationManager.class),mock(SecurityContextRepository.class),users,encoder,false);
 
         var response=service.register(new Api.RegisterRequest(" Synthetic Patient ","Patient@Example.Test","StrongPass1!",true));
 
@@ -31,7 +31,7 @@ class AuthServiceTest {
     @Test void duplicateEmailReturnsSameGenericResponseWithoutCreatingAccount() {
         var users=mock(UserRepository.class); var encoder=mock(PasswordEncoder.class);
         when(users.existsByEmailIgnoreCase("patient@example.test")).thenReturn(true);
-        var service=new AuthService(mock(AuthenticationManager.class),mock(SecurityContextRepository.class),users,encoder);
+        var service=new AuthService(mock(AuthenticationManager.class),mock(SecurityContextRepository.class),users,encoder,false);
 
         var response=service.register(new Api.RegisterRequest("Patient","patient@example.test","StrongPass1!",true));
 

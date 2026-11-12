@@ -13,9 +13,13 @@ public class StatusEvent {
     @Column(name="old_status") public String oldStatus;
     @Column(name="new_status") public String newStatus;
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="actor_user_id") public AppUser actor;
+    @Column(name="automatic", nullable=false) public boolean automatic;
     @Column(name="created_at") public Instant createdAt = Instant.now();
     protected StatusEvent() {}
     public StatusEvent(Emergency emergency, String oldStatus, String newStatus, AppUser actor) {
         this.id=UUID.randomUUID(); this.emergency=emergency; this.oldStatus=oldStatus; this.newStatus=newStatus; this.actor=actor;
+    }
+    public StatusEvent(Emergency emergency, String oldStatus, String newStatus, AppUser actor, boolean automatic) {
+        this(emergency,oldStatus,newStatus,actor); this.automatic=automatic;
     }
 }

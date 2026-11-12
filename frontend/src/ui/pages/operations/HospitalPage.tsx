@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Emergency, getEvents, getHospital, getMedicalSummary, TimelineEvent, list } from '../../../api'
+import { HospitalLocationSettings } from './HospitalLocationSettings'
 import { HospitalRegistryPanel } from './HospitalRegistryPanel'
 
 type MedicalSummary = {
@@ -20,7 +21,7 @@ const statusLabel: Record<string, string> = {
 const actorLabel = { PATIENT: 'Cidadão', DISPATCHER: 'Central', HOSPITAL_STAFF: 'Hospital', DEMO_ADMIN: 'Administração' }
 
 export function HospitalPage() {
-  const [section, setSection] = useState<'cases' | 'crew' | 'patients'>('cases')
+  const [section, setSection] = useState<'cases' | 'crew' | 'patients' | 'location'>('cases')
   const [cases, setCases] = useState<Emergency[]>([])
   const [selectedId, setSelectedId] = useState('')
   const [events, setEvents] = useState<TimelineEvent[]>([])
@@ -89,14 +90,15 @@ export function HospitalPage() {
       <button className={section === 'cases' ? 'primary' : 'secondary'} type="button" aria-pressed={section === 'cases'} onClick={() => setSection('cases')}>Ocorrências</button>
       <button className={section === 'crew' ? 'primary' : 'secondary'} type="button" aria-pressed={section === 'crew'} onClick={() => setSection('crew')}>Funcionários da ambulância</button>
       <button className={section === 'patients' ? 'primary' : 'secondary'} type="button" aria-pressed={section === 'patients'} onClick={() => setSection('patients')}>Pacientes</button>
+      <button className={section === 'location' ? 'primary' : 'secondary'} type="button" aria-pressed={section === 'location'} onClick={() => setSection('location')}>Unidade</button>
     </nav>
     {error && <p className="error" role="alert">{error}</p>}
-    {section === 'cases' ? <div className="institution-layout">
+    {section === 'location' ? <HospitalLocationSettings /> : section === 'cases' ? <div className="institution-layout">
       <nav className="case-list" aria-label="Ocorrências vinculadas">
         {loading && <div className="card empty">Carregando ocorrências…</div>}
         {!loading && cases.length === 0 && <div className="card empty"><h3>Nenhuma ocorrência vinculada</h3><p>Ocorrências autorizadas aparecerão nesta lista.</p></div>}
         {cases.map(item => <button key={item.id} type="button" className={`card case-row${selectedId === item.id ? ' selected' : ''}`} onClick={() => selectCase(item.id)} aria-pressed={selectedId === item.id}>
-          <span><strong>Cidadão</strong><small>{item.id}</small><small>{new Date(item.createdAt).toLocaleString('pt-BR')}</small></span>
+          <span><strong>Cidadão</strong><small>{item.id}</small><small>{item.ambulanceCode ? `Ambulância ${item.ambulanceCode}` : 'Ambulância ainda não selecionada'}</small><small>{new Date(item.createdAt).toLocaleString('pt-BR')}</small></span>
           <span className="tag">{statusLabel[item.status] || item.status}</span>
         </button>)}
       </nav>
@@ -115,13 +117,14 @@ export function HospitalPage() {
         </> : <p>Carregando informações…</p>}
         <h3>Estado e histórico</h3>
         <p><strong>{statusLabel[selected.status] || selected.status}</strong></p>
+        <p><strong>Ambulância:</strong> {selected.ambulanceCode || 'Ainda não selecionada'}</p>
         <ol className="timeline-list">
           {events.map((event, index) => (
             <li key={`${event.occurredAt}-${index}`}>
               <span className="timeline-dot" aria-hidden="true" />
               <span>
                 <strong>{statusLabel[event.status || ''] || event.status || 'Atualização'}</strong>
-                <small>{actorLabel[event.actorRole]} · {new Date(event.occurredAt).toLocaleString('pt-BR')}</small>
+                <small>{event.actorLabel || actorLabel[event.actorRole]} · {new Date(event.occurredAt).toLocaleString('pt-BR')}</small>
               </span>
             </li>
           ))}

@@ -1,6 +1,7 @@
 package br.com.vitalink.modules.emergencies;
 
 import br.com.vitalink.modules.auth.AppUser;
+import br.com.vitalink.modules.fleet.Ambulance;
 import br.com.vitalink.modules.institutions.Institution;
 
 import jakarta.persistence.*;
@@ -13,6 +14,7 @@ public class Emergency {
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="patient_id") public AppUser patient;
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="central_id") public Institution central;
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="hospital_id") public Institution hospital;
+    @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="ambulance_id") public Ambulance ambulance;
     @Enumerated(EnumType.STRING) public EmergencyStatus status;
     @Column(name="is_simulation") public boolean simulation = true;
     @Column(name="location_source") public String locationSource;

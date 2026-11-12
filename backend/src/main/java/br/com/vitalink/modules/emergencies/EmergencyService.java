@@ -3,6 +3,12 @@ package br.com.vitalink.modules.emergencies;
 import br.com.vitalink.modules.auth.AppUser;
 import br.com.vitalink.modules.auth.DemoPrincipal;
 import br.com.vitalink.modules.audit.AuditService;
+import br.com.vitalink.modules.fleet.Ambulance;
+import br.com.vitalink.modules.fleet.AmbulanceRepository;
+import br.com.vitalink.modules.fleet.AmbulanceStatus;
+import br.com.vitalink.modules.institutions.GeoDistance;
+import br.com.vitalink.modules.institutions.Institution;
+import br.com.vitalink.modules.institutions.InstitutionRepository;
 import br.com.vitalink.modules.institutions.InstitutionService;
 import br.com.vitalink.modules.patients.MedicalProfile;
 import br.com.vitalink.modules.patients.MedicalProfileRepository;
@@ -16,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +30,7 @@ import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,14 +38,19 @@ import java.util.UUID;
 public class EmergencyService {
     private final EmergencyRepository emergencies;
     private final InstitutionService institutions;
+    private final InstitutionRepository institutionRepository;
+    private final AmbulanceRepository ambulances;
     private final MedicalProfileRepository profiles;
     private final IdempotencyRecordRepository idempotency; private final StatusEventRepository events;
     private final AccessGrantRepository grants; private final AuditService audit; private final ObjectMapper mapper;
+    private final ApplicationEventPublisher publisher;
     public EmergencyService(EmergencyRepository emergencies, InstitutionService institutions, MedicalProfileRepository profiles,
                      IdempotencyRecordRepository idempotency, StatusEventRepository events, AccessGrantRepository grants,
-                     AuditService audit, ObjectMapper mapper) {
-        this.emergencies=emergencies; this.institutions=institutions; this.profiles=profiles;
-        this.idempotency=idempotency; this.events=events; this.grants=grants; this.audit=audit; this.mapper=mapper;
+                     AuditService audit, ObjectMapper mapper, InstitutionRepository institutionRepository, AmbulanceRepository ambulances,
+                     ApplicationEventPublisher publisher) {
+        this.emergencies=emergencies; this.institutions=institutions; this.institutionRepository=institutionRepository;
+        this.ambulances=ambulances; this.profiles=profiles;
+        this.idempotency=idempotency; this.events=events; this.grants=grants; this.audit=audit; this.mapper=mapper; this.publisher=publisher;
     }
 
     @Transactional
@@ -62,7 +75,10 @@ public class EmergencyService {
         event.address=safe(body.location().address()); event.referencePoint=safe(body.location().reference());
         event.latitude=body.location().latitude(); event.longitude=body.location().longitude(); event.accuracyMeters=body.location().accuracyMeters(); event.notes=safe(body.notes());
         emergencies.save(event); events.save(new StatusEvent(event,null,event.status.name(),actor));
+        if (dispatchAutomatically(event,actor)) emergencies.save(event);
         idempotency.save(new IdempotencyRecord(actor,keyHash,requestHash,event)); audit.record(actor,"EMERGENCY_CREATED","EMERGENCY",event.id);
+        publisher.publishEvent(new EmergencyRegisteredEvent(event.id,actor.id,event.address,event.latitude,event.longitude,
+            event.ambulance==null?null:event.ambulance.code,event.hospital==null?null:event.hospital.getName(),event.createdAt));
         return response(event);
     }
 
@@ -89,7 +105,7 @@ public class EmergencyService {
     @Transactional(readOnly=true)
     List<Api.TimelineEvent> timeline(DemoPrincipal p, UUID id) {
         var e=authorized(p,id);
-        return events.findByEmergencyIdOrderByCreatedAtAsc(e.id).stream().map(x -> new Api.TimelineEvent(x.oldStatus,x.newStatus==null?null:EmergencyStatus.valueOf(x.newStatus),x.actor.getRole(),label(x.actor.getRole()),x.createdAt)).toList();
+        return events.findByEmergencyIdOrderByCreatedAtAsc(e.id).stream().map(x -> new Api.TimelineEvent(x.oldStatus,x.newStatus==null?null:EmergencyStatus.valueOf(x.newStatus),x.actor.getRole(),x.automatic?"Despacho automático":label(x.actor.getRole()),x.createdAt)).toList();
     }
     @Transactional
     Api.EmergencyResponse transition(DemoPrincipal p, UUID id, Api.TransitionRequest body) {
@@ -110,6 +126,7 @@ public class EmergencyService {
         requireDispatcher(p); var e=centralEmergency(p,id);
         if (!e.status.open()) throw ApiException.conflict("A ocorrência está encerrada.");
         var hospital=institutions.demoHospital(hospitalId);
+        if (!hospital.acceptingEmergencies) throw ApiException.conflict("Este hospital não está recebendo novas ocorrências.");
         e.hospital=hospital; e.updatedAt=Instant.now();
         grants.findByEmergencyIdAndRevokedAtIsNull(e.id).forEach(g -> g.revokedAt=Instant.now());
         grants.save(new AccessGrant(e,hospital,p.user(),null));
@@ -138,13 +155,34 @@ public class EmergencyService {
     private void setStatus(Emergency e, EmergencyStatus next, AppUser actor) {
         var old=e.status; e.status=next; e.updatedAt=Instant.now(); if(next==EmergencyStatus.CLOSED || next==EmergencyStatus.CANCELLED) e.closedAt=Instant.now();
         events.save(new StatusEvent(e,old.name(),next.name(),actor)); audit.record(actor,"STATUS_CHANGED","EMERGENCY",e.id);
+        if ((next==EmergencyStatus.CLOSED || next==EmergencyStatus.CANCELLED) && e.ambulance!=null)
+            e.ambulance.status=AmbulanceStatus.AVAILABLE;
         if (e.closedAt!=null && e.hospital!=null) grants.active(e.id,e.hospital.getId(),Instant.now()).ifPresent(g -> g.expiresAt=e.closedAt.plus(Duration.ofHours(24)));
     }
-    private Api.EmergencySummary summary(Emergency e) { return new Api.EmergencySummary(e.id,true,e.status,e.locationSource,e.address,e.referencePoint,e.latitude,e.longitude,e.accuracyMeters,e.notes,e.version,e.createdAt,e.hospital==null?null:e.hospital.getName()); }
-    private Api.HospitalEmergencySummary hospitalSummary(Emergency e) { return new Api.HospitalEmergencySummary(e.id,true,e.status,e.version,e.createdAt); }
+    private Api.EmergencySummary summary(Emergency e) { return new Api.EmergencySummary(e.id,true,e.status,e.locationSource,e.address,e.referencePoint,e.latitude,e.longitude,e.accuracyMeters,e.notes,e.version,e.createdAt,e.hospital==null?null:e.hospital.getName(),e.ambulance==null?null:e.ambulance.code); }
+    private Api.HospitalEmergencySummary hospitalSummary(Emergency e) { return new Api.HospitalEmergencySummary(e.id,true,e.status,e.version,e.createdAt,e.ambulance==null?null:e.ambulance.code); }
     private Api.EmergencyResponse response(Emergency e) {
-        String message=e.status==EmergencyStatus.REQUESTED?"Pedido simulado registrado. Nenhuma ambulância real foi acionada.":"Estado atualizado no ambiente de SIMULAÇÃO. Nenhuma ambulância real foi acionada.";
-        return new Api.EmergencyResponse(e.id,true,e.status,e.version,message,e.createdAt);
+        String message=e.ambulance!=null?"Ambulância e hospital selecionados automaticamente nesta simulação. Nenhuma equipe real foi acionada.":
+            e.status==EmergencyStatus.REQUESTED?"Pedido simulado registrado; aguardando localização e recursos disponíveis. Nenhuma ambulância real foi acionada.":"Estado atualizado no ambiente de SIMULAÇÃO. Nenhuma ambulância real foi acionada.";
+        return new Api.EmergencyResponse(e.id,true,e.status,e.version,message,e.createdAt,e.ambulance==null?null:e.ambulance.code,e.hospital==null?null:e.hospital.getName());
+    }
+    private boolean dispatchAutomatically(Emergency emergency, AppUser actor) {
+        if (!"BROWSER".equals(emergency.locationSource) || emergency.latitude==null || emergency.longitude==null) return false;
+        Institution hospital=institutionRepository.findByKindAndAcceptingEmergenciesTrueAndLatitudeIsNotNullAndLongitudeIsNotNull("HOSPITAL").stream()
+            .min(Comparator.comparingDouble(item -> GeoDistance.meters(emergency.latitude,emergency.longitude,item.latitude,item.longitude))).orElse(null);
+        if (hospital==null) return false;
+        Ambulance ambulance=ambulances.lockAvailableWithLocation(emergency.central.getId(),AmbulanceStatus.AVAILABLE).stream()
+            .min(Comparator.comparingDouble(item -> GeoDistance.meters(emergency.latitude,emergency.longitude,item.latitude,item.longitude))).orElse(null);
+        if (ambulance==null) return false;
+        ambulance.status=AmbulanceStatus.OCCUPIED;
+        emergency.ambulance=ambulance;
+        emergency.hospital=hospital;
+        emergency.status=EmergencyStatus.RESOURCE_ASSIGNED;
+        emergency.updatedAt=Instant.now();
+        grants.save(new AccessGrant(emergency,hospital,actor,null));
+        events.save(new StatusEvent(emergency,EmergencyStatus.REQUESTED.name(),EmergencyStatus.RESOURCE_ASSIGNED.name(),actor,true));
+        audit.record(actor,"AUTO_DISPATCH_ASSIGNED","EMERGENCY",emergency.id);
+        return true;
     }
     private static Emergency missing() { throw ApiException.notFound(); }
     private static void requireDispatcher(DemoPrincipal p) { if (p.user().role!=Role.DISPATCHER || p.user().institution==null) throw ApiException.forbidden(); }

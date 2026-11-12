@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Emergency, getMine, list } from '../../../api'
+import { KeywordHelpTrigger } from '../../shared/KeywordHelpTrigger'
 import { MockCallsPanel } from './MockCallsPanel'
+import { QuickHelpPanel } from './QuickHelpPanel'
 import './MockCallsPanel.css'
+
+export const REQUEST_EMERGENCY_EVENT = 'vitalink:request-emergency'
 
 const statusNames: Record<string, string> = {
   REQUESTED: 'Solicitação recebida', ACKNOWLEDGED: 'Atendimento confirmado',
@@ -15,6 +19,8 @@ export function CitizenHomePage() {
   const [requests, setRequests] = useState<Emergency[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [quickHelpOpen, setQuickHelpOpen] = useState(false)
+  const navigate = useNavigate()
   const refresh = useCallback(async () => {
     setError('')
     setLoading(true)
@@ -27,6 +33,11 @@ export function CitizenHomePage() {
     }
   }, [])
   useEffect(() => { void refresh() }, [refresh])
+  useEffect(() => {
+    const requestEmergency = () => navigate('/patient/request')
+    window.addEventListener(REQUEST_EMERGENCY_EVENT, requestEmergency)
+    return () => window.removeEventListener(REQUEST_EMERGENCY_EVENT, requestEmergency)
+  }, [navigate])
   const current = requests.find((request) => !['CLOSED', 'CANCELLED'].includes(request.status))
 
   return (
@@ -38,6 +49,18 @@ export function CitizenHomePage() {
           <p>Acompanhe suas solicitações e mantenha suas informações atualizadas.</p>
         </div>
       </div>
+
+      <div className="quick-help-actions">
+        <Link className="quick-help-trigger" to="/patient/request">
+          <span aria-hidden="true">!</span>
+          <span><strong>Preciso de ajuda</strong><small>Iniciar solicitação com sua localização atual</small></span>
+        </Link>
+        <button className="secondary quick-help-more" type="button" aria-expanded={quickHelpOpen} aria-controls="quick-help-panel" onClick={() => setQuickHelpOpen((open) => !open)}>
+          Contatos e hospitais próximos
+        </button>
+      </div>
+      <QuickHelpPanel open={quickHelpOpen} onClose={() => setQuickHelpOpen(false)} />
+      <KeywordHelpTrigger />
 
       <div className="citizen-actions">
         <Link className="action-card action-main" to="/patient/request">

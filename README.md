@@ -51,6 +51,10 @@ Na área do paciente há um painel de **ligações simuladas** para experimentar
 - Não há integração com serviços públicos, telefonia, despacho ou instituições reais.
 - Nenhuma configuração pode transformar este protótipo em serviço de emergência real.
 - Não use o ambiente local para dados pessoais ou clínicos reais.
+- A sessão autenticada não expira por inatividade e o cookie é renovado em chamadas autenticadas; ela termina pelo logout. O navegador ainda pode apagar cookies e as sessões em memória são perdidas quando o backend reinicia.
+- O login por passkey usa verificação local do aparelho (biometria ou PIN, conforme o autenticador); o VitaLink armazena apenas a credencial pública. Senha continua disponível como alternativa.
+- A solicitação usa a localização atual do navegador por padrão; ao editar o endereço, as coordenadas atuais são removidas. O despacho é simulado e depende das posições e disponibilidades cadastradas para hospitais e ambulâncias. SMS automático é opcional, via Zenvia, e só é tentado para contatos com consentimento quando `ZENVIA_SMS_ENABLED=true`, `ZENVIA_API_TOKEN` e `ZENVIA_SMS_SENDER` estão configurados. A resposta do provedor não confirma entrega; WhatsApp não está integrado.
+- Para publicar, configure `SESSION_COOKIE_SECURE=true`, `WEBAUTHN_RP_ID` e `WEBAUTHN_ALLOWED_ORIGIN` com o domínio exato da aplicação; os padrões `localhost` são apenas para desenvolvimento.
 - A interface deve manter a opção **Ligar 192** disponível e nunca alegar que uma ligação ou atendimento foi realizado.
 - Antes de qualquer uso fora de demonstração seriam necessários, entre outros requisitos, parceria e autorização institucional, revisão jurídica/LGPD e clínica, avaliação independente de segurança, MFA e operação 24/7. Este repositório não comprova esses requisitos.
 

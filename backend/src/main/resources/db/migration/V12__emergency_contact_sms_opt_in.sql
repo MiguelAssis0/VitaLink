@@ -1,0 +1,1 @@
+ALTER TABLE emergency_contacts ADD COLUMN sms_opt_in BOOLEAN NOT NULL DEFAULT FALSE;

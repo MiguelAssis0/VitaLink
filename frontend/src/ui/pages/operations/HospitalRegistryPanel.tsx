@@ -36,11 +36,11 @@ export function HospitalRegistryPanel({ registry }: { registry: Registry }) {
       if (registry === 'crew') {
         const member = await addAmbulanceCrewMember({ name: name.trim(), position, phone: phone.trim() })
         setCrew(current => [...current, member].sort((a, b) => a.name.localeCompare(b.name)))
-        setMessage('Funcionário cadastrado.')
+        setMessage('Funcionário cadastrado com sucesso.')
       } else {
         const patient = await addHospitalPatient({ name: name.trim(), birthDate, phone: phone.trim() })
         setPatients(current => [patient, ...current])
-        setMessage('Paciente cadastrado.')
+        setMessage('Paciente cadastrado com sucesso.')
       }
       setName(''); setPhone(''); setBirthDate('')
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o cadastro.') }
@@ -51,6 +51,7 @@ export function HospitalRegistryPanel({ registry }: { registry: Registry }) {
   return <section className="registry-layout" aria-labelledby="registry-heading">
     <div className="card registry-form-card">
       <h2 id="registry-heading">{isCrew ? 'Cadastrar funcionário da ambulância' : 'Cadastrar paciente'}</h2>
+      {message && <p className="info-card success-text" role="status" aria-live="polite">{message}</p>}
       <p className="muted">{isCrew ? 'Adicione um profissional à equipe do hospital.' : 'Registre os dados básicos do paciente.'}</p>
       <form onSubmit={event => void submit(event)}>
         <label htmlFor="registry-name">Nome completo</label>
@@ -67,7 +68,6 @@ export function HospitalRegistryPanel({ registry }: { registry: Registry }) {
         <label htmlFor="registry-phone">Telefone <span className="muted">(opcional)</span></label>
         <input id="registry-phone" type="tel" maxLength={30} autoComplete="tel" value={phone} onChange={event => setPhone(event.target.value)} />
         {error && <p className="error" role="alert">{error}</p>}
-        {message && <p className="success" role="status">{message}</p>}
         <button className="primary" disabled={saving}>{saving ? 'Salvando…' : 'Salvar cadastro'}</button>
       </form>
     </div>

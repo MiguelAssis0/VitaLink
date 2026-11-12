@@ -28,13 +28,15 @@ public final class Api {
                     @DecimalMin("-180.0") @DecimalMax("180.0") Double longitude,
                     @DecimalMin("0.0") @DecimalMax("100000.0") Double accuracyMeters) {}
     public record CreateEmergencyRequest(@NotNull @Valid Location location, @Size(max=500) String notes) {}
-    public record EmergencyResponse(UUID id, boolean simulation, EmergencyStatus status, long version, String message, Instant createdAt) {}
+    public record EmergencyResponse(UUID id, boolean simulation, EmergencyStatus status, long version, String message, Instant createdAt,
+                                    String ambulanceCode, String hospitalName) {}
     public record TransitionRequest(@NotNull EmergencyStatus status, @NotNull @PositiveOrZero Long expectedVersion) {}
     public record AssignmentRequest(@NotNull UUID hospitalInstitutionId) {}
     public record EmergencySummary(UUID id, boolean simulation, EmergencyStatus status, String locationSource, String address,
                             String reference, Double latitude, Double longitude, Double accuracyMeters, String notes,
-                            long version, Instant createdAt, String hospitalName) {}
-    public record HospitalEmergencySummary(UUID id, boolean simulation, EmergencyStatus status, long version, Instant createdAt) {}
+                            long version, Instant createdAt, String hospitalName, String ambulanceCode) {}
+    public record HospitalEmergencySummary(UUID id, boolean simulation, EmergencyStatus status, long version, Instant createdAt,
+                                           String ambulanceCode) {}
     public record MedicalProfileRequest(@Size(max=240) String address, @Size(max=1000) String allergies, @Size(max=1000) String medications,
                                  @Size(max=1000) String conditions, @Size(max=1000) String notes) {}
     public record MedicalProfileResponse(String address, String allergies, String medications, String conditions, String notes,
@@ -42,8 +44,8 @@ public final class Api {
     public record BasicProfileRequest(@NotBlank @Size(max=120) String displayName, @Size(max=30) String phone, @Size(max=240) String address) {}
     public record BasicProfileResponse(String displayName, String email, String phone, String address) {}
     public record EmergencyContactRequest(@NotBlank @Size(max=120) String name, @NotBlank @Size(max=30) String phone,
-            @Size(max=80) String relationship) {}
-    public record EmergencyContactResponse(UUID id, String name, String phone, String relationship) {}
+            @Size(max=80) String relationship, Boolean smsOptIn) {}
+    public record EmergencyContactResponse(UUID id, String name, String phone, String relationship, boolean smsOptIn) {}
     public record PrivacyRequestBody(@NotNull PrivacyRequestType type) {}
     public record PrivacyRequestResponse(UUID id, PrivacyRequestType type, String status, Instant createdAt, Instant completedAt) {}
     public record PatientDataExport(Instant exportedAt, Instant accountCreatedAt, BasicProfileResponse profile, MedicalProfileResponse medicalProfile,
@@ -59,8 +61,10 @@ public final class Api {
     public record TimelineEvent(String oldStatus, EmergencyStatus status, Role actorRole, String actorLabel, Instant occurredAt) {}
     public record AdminOverview(long users, long institutions, long emergencies, long openEmergencies, long pendingDeletions) {}
     public record AmbulanceRequest(@NotBlank @Size(max=24) String code) {}
+    public record AmbulanceLocationRequest(@NotNull @DecimalMin("-90.0") @DecimalMax("90.0") Double latitude,
+            @NotNull @DecimalMin("-180.0") @DecimalMax("180.0") Double longitude) {}
     public record AmbulanceStatusRequest(@NotNull AmbulanceStatus status) {}
-    public record AmbulanceResponse(UUID id, String code, AmbulanceStatus status) {}
+    public record AmbulanceResponse(UUID id, String code, AmbulanceStatus status, Double latitude, Double longitude) {}
     public record AmbulanceCrewRequest(@NotBlank @Size(max=120) String name, @NotBlank @Size(max=80) String position,
                                       @Size(max=30) String phone) {}
     public record AmbulanceCrewResponse(UUID id, String name, String position, String phone, Instant createdAt) {}

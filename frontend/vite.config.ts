@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => {
   server: {
     host: '0.0.0.0',
     port: 5173,
-    proxy: { '/api': { target: env.VITE_API_TARGET || 'http://localhost:8080', changeOrigin: true } }
+    proxy: Object.fromEntries(['/api', '/webauthn', '/login/webauthn'].map((path) => [path, { target: env.VITE_API_TARGET || 'http://localhost:8080', changeOrigin: true }]))
   },
   test: { environment: 'jsdom', setupFiles: './src/test-setup.ts' }
   }

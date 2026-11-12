@@ -11,6 +11,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -20,10 +21,12 @@ public class AuthService {
     private final SecurityContextRepository contextRepository;
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
+    private final boolean secureCookies;
     public AuthService(AuthenticationManager authenticationManager, SecurityContextRepository contextRepository,
-                       UserRepository users, PasswordEncoder passwordEncoder) {
+                       UserRepository users, PasswordEncoder passwordEncoder,
+                       @Value("${SESSION_COOKIE_SECURE:false}") boolean secureCookies) {
         this.authenticationManager=authenticationManager; this.contextRepository=contextRepository;
-        this.users=users; this.passwordEncoder=passwordEncoder;
+        this.users=users; this.passwordEncoder=passwordEncoder; this.secureCookies=secureCookies;
     }
     @Transactional
     public Api.RegistrationResponse register(Api.RegisterRequest body) {
@@ -37,15 +40,18 @@ public class AuthService {
     }
     public Api.UserResponse login(Api.LoginRequest body,HttpServletRequest request,HttpServletResponse response) {
         var authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(body.email(),body.password()));
-        request.getSession(true); request.changeSessionId();
+        var session=request.getSession(true);
+        request.changeSessionId();
+        session.setMaxInactiveInterval(-1);
         var context=SecurityContextHolder.createEmptyContext(); context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context); contextRepository.saveContext(context,request,response);
+        SessionCookies.persist(response, session.getId(), secureCookies);
         return response((DemoPrincipal)authentication.getPrincipal());
     }
     public void logout(HttpServletRequest request,HttpServletResponse response) {
         var session=request.getSession(false); if(session!=null) session.invalidate();
         SecurityContextHolder.clearContext();
-        var cookie=new jakarta.servlet.http.Cookie("JSESSIONID",""); cookie.setPath("/"); cookie.setHttpOnly(true); cookie.setMaxAge(0); response.addCookie(cookie);
+        SessionCookies.expire(response, secureCookies);
     }
     public Api.UserResponse current(DemoPrincipal principal) { return response(principal); }
     private static Api.UserResponse response(DemoPrincipal p) {

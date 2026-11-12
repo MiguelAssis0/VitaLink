@@ -1,0 +1,12 @@
+.keyword-help-trigger {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+.keyword-help-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}

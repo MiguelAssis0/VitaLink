@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { User } from '../../api'
 import { roleHome } from './role-home'
+import { PasskeyEnrollment } from './PasskeyEnrollment'
 
 type AppShellProps = {
   children: ReactNode
@@ -40,7 +41,7 @@ export function AppShell({ children, user, offline, onSignOut }: AppShellProps) 
             )}
           </button>
         )}
-        {user && <button className="text-button" onClick={onSignOut}>Sair</button>}
+        {user && <div className="head-actions"><PasskeyEnrollment /><button className="text-button" onClick={onSignOut}>Sair</button></div>}
       </header>
 
       {offline && <div className="offline global-offline" role="status">Sem conexão: pedidos não podem ser enviados.</div>}

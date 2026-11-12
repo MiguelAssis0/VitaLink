@@ -60,6 +60,12 @@ export function EmergencyDetailsPage() {
           <span className="sim-badge">SIMULAÇÃO · NENHUMA AMBULÂNCIA REAL FOI ACIONADA</span>
           <h1>{statusNames[request.status] || request.status}</h1>
           <p className="muted">Solicitação {request.id}</p>
+          {request.ambulanceCode && <section className="info-card" aria-label="Recursos selecionados na simulação">
+            <h2>Recursos selecionados</h2>
+            <p>Ambulância <strong>{request.ambulanceCode}</strong>{request.hospitalName ? <> · Hospital <strong>{request.hospitalName}</strong></> : null}</p>
+            <p className="hint">Seleção simulada por distância e disponibilidade. Nenhuma equipe real foi acionada.</p>
+          </section>}
+          {!request.ambulanceCode && request.status === 'REQUESTED' && <p className="hint">Solicitação registrada na simulação e aguardando disponibilidade de recursos. Nenhuma ambulância real foi acionada.</p>}
           <h2>Histórico de atualizações</h2>
           <ol className="timeline-list">
             {events.map((event, index) => (
@@ -69,7 +75,7 @@ export function EmergencyDetailsPage() {
                   <strong>{event.status ? statusNames[event.status] || event.status : 'Solicitação criada'}</strong>
                   <small>
                     {new Date(event.occurredAt).toLocaleString('pt-BR')} ·{' '}
-                    {event.actorRole === 'PATIENT' ? 'Cidadão' : event.actorLabel || event.actorRole}
+                    {event.actorLabel || (event.actorRole === 'PATIENT' ? 'Cidadão' : event.actorRole)}
                   </small>
                 </div>
               </li>

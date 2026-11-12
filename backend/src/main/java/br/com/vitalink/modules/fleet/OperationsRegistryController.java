@@ -57,6 +57,17 @@ public class OperationsRegistryController {
         return ambulanceResponse(updated);
     }
 
+    @PutMapping("/central/ambulances/{id}/location")
+    public Api.AmbulanceResponse updateAmbulanceLocation(@AuthenticationPrincipal DemoPrincipal principal,
+            @PathVariable UUID id, @Valid @RequestBody Api.AmbulanceLocationRequest body) {
+        var central=central(principal);
+        var ambulance=ambulances.findById(id).filter(item -> item.central.getId().equals(central.getId())).orElseThrow(ApiException::notFound);
+        ambulance.latitude=body.latitude(); ambulance.longitude=body.longitude();
+        var updated=ambulances.save(ambulance);
+        audit.record(principal.user(),"AMBULANCE_LOCATION_UPDATED","AMBULANCE",updated.id);
+        return ambulanceResponse(updated);
+    }
+
     @GetMapping("/hospital/ambulance-crew")
     public List<Api.AmbulanceCrewResponse> crew(@AuthenticationPrincipal DemoPrincipal principal) {
         var hospital=hospital(principal);
@@ -88,7 +99,7 @@ public class OperationsRegistryController {
     }
 
     private Api.AmbulanceResponse ambulanceResponse(Ambulance item) {
-        return new Api.AmbulanceResponse(item.id,item.code,item.status);
+        return new Api.AmbulanceResponse(item.id,item.code,item.status,item.latitude,item.longitude);
     }
     private Api.AmbulanceCrewResponse crewResponse(AmbulanceCrewMember item) {
         return new Api.AmbulanceCrewResponse(item.id,item.name,item.position,item.phone,item.createdAt);

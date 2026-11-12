@@ -98,7 +98,7 @@ export function RegisterPage({ onRegistered }: RegisterPageProps = {}) {
 
         <p className="hint">O cadastro não envia confirmação por e-mail.</p>
         {error && <p className="error" role="alert">{error}</p>}
-        {success && <p className="success-text" role="status">{success}</p>}
+        {success && <p className="info-card success-text" role="status">{success}</p>}
         <button className="primary full" type="submit" disabled={busy || !adultConfirmed}>
           {busy ? 'Criando conta…' : 'Criar conta'}
         </button>

@@ -37,3 +37,12 @@ management:
       show-details: never
 app:
   demo-mode: ${DEMO_MODE:true}
+webauthn:
+  rp-id: ${WEBAUTHN_RP_ID:localhost}
+  allowed-origin: ${WEBAUTHN_ALLOWED_ORIGIN:http://localhost:5173}
+notifications:
+  zenvia:
+    sms:
+      enabled: ${ZENVIA_SMS_ENABLED:false}
+      api-token: ${ZENVIA_API_TOKEN:}
+      sender: ${ZENVIA_SMS_SENDER:}

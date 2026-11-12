@@ -1,39 +1,41 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { createEmergency, Emergency, getMedicalProfile } from '../../../api'
+import { createEmergency, Emergency } from '../../../api'
 
 export function EmergencyRequestPage() {
   const [address, setAddress] = useState('')
   const [reference, setReference] = useState('')
   const [notes, setNotes] = useState('')
   const [coords, setCoords] = useState<{ latitude: number; longitude: number; accuracy: number } | null>(null)
-  const [locationStatus, setLocationStatus] = useState('Você pode usar a localização atual ou informar um endereço.')
+  const [locationStatus, setLocationStatus] = useState('Obtendo sua localização atual…')
   const [confirmed, setConfirmed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [created, setCreated] = useState<Emergency | null>(null)
-  const addressEdited = useRef(false)
+  const locationRequested = useRef(false)
   const idempotency = useRef<{ payload: string; key: string } | null>(null)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    void getMedicalProfile().then((profile) => {
-      if (!addressEdited.current && profile.address) setAddress(profile.address)
-    }).catch(() => undefined)
-  }, [])
-
-  function useCurrentLocation() {
-    if (!navigator.geolocation) { setLocationStatus('Este navegador não oferece localização. Informe o endereço manualmente.'); return }
+  const useCurrentLocation = useCallback(() => {
+    if (!navigator.geolocation) { setCoords(null); setAddress(''); setLocationStatus('Este navegador não oferece localização. Informe o endereço manualmente.'); return }
     setLocationStatus('Aguardando permissão de localização…')
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setCoords({ latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy: position.coords.accuracy })
-        setLocationStatus(`Localização obtida, precisão aproximada de ${Math.round(position.coords.accuracy)} m. Confira os dados antes de continuar.`)
+        setAddress('')
+        setLocationStatus(`Localização atual obtida: ${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)} (precisão aproximada de ${Math.round(position.coords.accuracy)} m). Edite o endereço abaixo se estiver em outro lugar.`)
       },
-      () => { setCoords(null); setLocationStatus('Não foi possível obter a localização. Informe o endereço manualmente.') },
-      { enableHighAccuracy: false, timeout: 10000 },
+      () => { setCoords(null); setAddress(''); setLocationStatus('Não foi possível obter a localização. Informe o endereço manualmente.') },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
     )
-  }
+  }, [])
+
+  useEffect(() => {
+    if (!locationRequested.current) {
+      locationRequested.current = true
+      useCurrentLocation()
+    }
+  }, [useCurrentLocation])
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
@@ -70,6 +72,9 @@ export function EmergencyRequestPage() {
           <span className="sim-badge">SIMULAÇÃO</span>
           <h1>Pedido simulado registrado</h1>
           <p><strong>Nenhuma ambulância real foi acionada.</strong></p>
+          <p>{created.message || 'O pedido foi registrado no VitaLink.'}</p>
+          {created.ambulanceCode && <p>Ambulância simulada: <strong>{created.ambulanceCode}</strong></p>}
+          {created.hospitalName && <p>Hospital selecionado: <strong>{created.hospitalName}</strong></p>}
           <p className="muted">Identificador: {created.id}</p>
           <div className="button-row">
             <button className="primary" onClick={() => navigate(`/patient/emergencies/${created.id}`)}>
@@ -90,25 +95,13 @@ export function EmergencyRequestPage() {
       <form className="card form-card" onSubmit={submit}>
         <div className="form-section">
           <h2>Onde você está?</h2>
-          <p className="muted">Informe um endereço ou use a localização atual.</p>
-          <button type="button" className="secondary" onClick={useCurrentLocation} disabled={Boolean(coords)}>
-            Usar localização atual
+          <p className="muted">Sua localização atual é usada por padrão. Edite o endereço abaixo para informar outro local.</p>
+          <button type="button" className="secondary" onClick={useCurrentLocation}>
+            {coords ? 'Atualizar localização atual' : 'Usar localização atual'}
           </button>
           <p className="hint" role="status">{locationStatus}</p>
-          {coords && (
-            <button
-              type="button"
-              className="text-button"
-              onClick={() => {
-                setCoords(null)
-                setLocationStatus('Informe um endereço ou use a localização atual.')
-              }}
-            >
-              Remover localização atual
-            </button>
-          )}
           <label htmlFor="address">
-            Endereço {coords && <span className="muted">(opcional com localização atual)</span>}
+            Endereço {coords && <span className="muted">(edite para usar outro local)</span>}
           </label>
           <input
             id="address"
@@ -116,10 +109,13 @@ export function EmergencyRequestPage() {
             maxLength={300}
             value={address}
             onChange={(event) => {
-              addressEdited.current = true
               setAddress(event.target.value)
+              if (coords) {
+                setCoords(null)
+                setLocationStatus('Endereço manual selecionado. A localização anterior foi removida.')
+              }
             }}
-            placeholder="Rua, número, bairro e cidade"
+            placeholder={coords ? 'Se for outro local, digite o endereço aqui' : 'Rua, número, bairro e cidade'}
           />
           <label htmlFor="reference">
             Ponto de referência <span className="muted">(opcional)</span>
@@ -140,11 +136,11 @@ export function EmergencyRequestPage() {
 
         <label className="check-row">
           <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
-          <span>Entendo que esta solicitação não encaminha equipes de emergência. Para atendimento imediato, ligarei 192.</span>
+          <span>Entendo que o direcionamento acontece apenas no VitaLink e não aciona uma equipe real. Para atendimento real, ligue 192.</span>
         </label>
         {error && <p className="error" role="alert">{error}</p>}
         <button className="primary full" disabled={busy || !confirmed || !navigator.onLine}>
-          {busy ? 'Registrando…' : 'Criar pedido de simulação'}
+          {busy ? 'Solicitando…' : 'Solicitar ajuda no VitaLink'}
         </button>
       </form>
     </div>

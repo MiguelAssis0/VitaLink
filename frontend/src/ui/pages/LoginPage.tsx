@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { login, type User } from '../../api'
 import PasswordInput from '../shared/PasswordInput'
+import { authenticatePasskey } from '../shared/passkeys'
 import './LoginPage.css'
 
 type LoginPageProps = {
@@ -22,6 +23,18 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       onLogin(await login(email, password))
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível acessar sua conta.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function submitPasskey() {
+    setError('')
+    setBusy(true)
+    try {
+      onLogin(await authenticatePasskey())
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível entrar com biometria.')
     } finally {
       setBusy(false)
     }
@@ -77,6 +90,9 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             {busy ? 'Acessando…' : 'Entrar'}
           </button>
         </form>
+        <button className="secondary full login-passkey" type="button" onClick={() => void submitPasskey()} disabled={busy}>
+          {busy ? 'Verificando…' : 'Entrar com biometria'}
+        </button>
         <p className="login-reset-link"><Link to="/reset-password">Esqueci minha senha</Link></p>
         <p className="login-register-link">Ainda não tem conta? <Link to="/register">Criar conta</Link></p>
       </section>

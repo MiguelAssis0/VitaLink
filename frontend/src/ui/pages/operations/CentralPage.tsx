@@ -140,7 +140,10 @@ export function CentralPage() {
           <dt>Precisão da localização</dt><dd>{selected.accuracyMeters == null ? 'Não informada' : `${Math.round(selected.accuracyMeters)} m`}</dd>
           <dt>Observação</dt><dd>{selected.notes || 'Nenhuma observação'}</dd>
           <dt>Unidade vinculada</dt><dd>{selected.hospitalName || 'Nenhuma'}</dd>
+          <dt>Ambulância selecionada</dt><dd>{selected.ambulanceCode || 'Nenhuma disponível para esta solicitação'}</dd>
         </dl>
+        {selected.status === 'RESOURCE_ASSIGNED' && <p className="hint">Ambulância e hospital selecionados automaticamente nesta simulação por distância e disponibilidade. Nenhuma equipe real foi acionada.</p>}
+        {selected.status === 'REQUESTED' && <p className="hint">Sem despacho automático: falta localização válida ou recurso disponível. Esta ocorrência permanece na fila da central.</p>}
         {medical && <section className="info-card" aria-labelledby="medical-heading">
           <h3 id="medical-heading">Informações de saúde</h3>
           <p>{medical.selfReported ? 'Informações informadas pelo cidadão.' : 'Informações de saúde.'}</p>
@@ -158,7 +161,7 @@ export function CentralPage() {
               <span className="timeline-dot" aria-hidden="true" />
               <span>
                 <strong>{statusLabel[event.status || ''] || event.status || 'Atualização'}</strong>
-                <small>{actorLabel[event.actorRole]} · {new Date(event.occurredAt).toLocaleString('pt-BR')}</small>
+                <small>{event.actorLabel || actorLabel[event.actorRole]} · {new Date(event.occurredAt).toLocaleString('pt-BR')}</small>
               </span>
             </li>
           ))}

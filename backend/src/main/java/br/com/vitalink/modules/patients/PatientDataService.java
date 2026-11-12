@@ -39,6 +39,13 @@ public class PatientDataService {
         audit.record(p.user(),"EMERGENCY_CONTACTS_UPDATED","PATIENT",id);
         return saved.stream().map(this::contact).toList();
     }
+    @Transactional
+    public void deleteContact(DemoPrincipal p, UUID contactId) {
+        MedicalProfileService.requirePatient(p);
+        var contact=contacts.findByIdAndPatientId(contactId,p.user().id).orElseThrow(br.com.vitalink.shared.errors.ApiException::notFound);
+        contacts.delete(contact);
+        audit.record(p.user(),"EMERGENCY_CONTACT_REMOVED","EMERGENCY_CONTACT",contactId);
+    }
     @Transactional(readOnly=true)
     public List<Api.PrivacyRequestResponse> privacyRequests(DemoPrincipal p) {
         MedicalProfileService.requirePatient(p);
@@ -73,6 +80,6 @@ public class PatientDataService {
         String label=switch(role) { case PATIENT -> "Cidadão"; case DISPATCHER -> "Operador da central fictícia"; case HOSPITAL_STAFF -> "Profissional do hospital fictício"; case DEMO_ADMIN -> "Administrador da demonstração"; };
         return new Api.TimelineEvent(e.oldStatus,e.newStatus==null?null:EmergencyStatus.valueOf(e.newStatus),role,label,e.createdAt);
     }
-    private Api.EmergencyContactResponse contact(EmergencyContact c) { return new Api.EmergencyContactResponse(c.id,c.name,c.phone,c.relationship); }
+    private Api.EmergencyContactResponse contact(EmergencyContact c) { return new Api.EmergencyContactResponse(c.id,c.name,c.phone,c.relationship,c.smsOptIn); }
     private Api.PrivacyRequestResponse requestView(PrivacyRequest r) { return new Api.PrivacyRequestResponse(r.id,r.type,r.status,r.createdAt,r.completedAt); }
 }

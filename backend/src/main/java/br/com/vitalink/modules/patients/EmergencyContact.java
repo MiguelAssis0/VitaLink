@@ -11,9 +11,11 @@ public class EmergencyContact {
     @Column(nullable=false, length=120) public String name;
     @Column(nullable=false, length=30) public String phone;
     @Column(nullable=false, length=80) public String relationship="";
+    @Column(name="sms_opt_in", nullable=false) public boolean smsOptIn;
     protected EmergencyContact() {}
     EmergencyContact(UUID patientId, Api.EmergencyContactRequest contact) {
         this.id=UUID.randomUUID(); this.patientId=patientId; this.name=contact.name().strip();
         this.phone=contact.phone().strip(); this.relationship=contact.relationship()==null?"":contact.relationship().strip();
+        this.smsOptIn=Boolean.TRUE.equals(contact.smsOptIn());
     }
 }

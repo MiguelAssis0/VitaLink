@@ -1,0 +1,7 @@
+.hospital-location-settings { max-width: 720px; padding: 24px; }
+.hospital-location-settings h2 { margin-bottom: 8px; }
+.hospital-location-settings form { margin-top: 18px; }
+.hospital-location-settings label { display: block; margin: 14px 0 6px; font-weight: 650; }
+.hospital-location-settings .hospital-availability { display: flex; align-items: center; gap: 10px; }
+.hospital-location-settings .hospital-availability input { width: 22px; height: 22px; accent-color: var(--teal); }
+.hospital-location-settings form button { margin-top: 16px; }

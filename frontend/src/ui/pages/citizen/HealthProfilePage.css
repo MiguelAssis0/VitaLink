@@ -1,0 +1,2 @@
+.contact-remove { margin-top: 10px; border-color: #d7aaa6; color: #8f1d16; }
+.contact-remove:hover:not(:disabled) { border-color: #b42318; background: #fff7f6; color: #8f1d16; }

@@ -1,0 +1,49 @@
+.quick-help-actions { display: grid; gap: 10px; margin: 4px 0 20px; }
+.quick-help-trigger {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 74px;
+  margin: 4px 0 20px;
+  padding: 14px 18px;
+  border: 1px solid #b42318;
+  border-radius: 12px;
+  background: #fff;
+  color: #172b3a;
+  text-align: left;
+  text-decoration: none;
+}
+
+.quick-help-trigger:hover { background: #fff7f6; }
+.quick-help-trigger > span:first-child { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: #b42318; color: #fff; font-size: 25px; font-weight: 800; }
+.quick-help-trigger strong,.quick-help-trigger small { display: block; }
+.quick-help-trigger strong { color: #8f1d16; font-size: 16px; }
+.quick-help-trigger small { margin-top: 4px; color: #536575; font-size: 13px; }
+
+.quick-help-panel { margin: -6px 0 22px; padding: 22px; }
+.quick-help-panel[hidden] { display: none; }
+.quick-help-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.quick-help-heading h2 { margin: 0 0 6px; }
+.quick-help-heading p { margin: 0; color: var(--muted); }
+.quick-help-panel h3 { margin: 22px 0 8px; }
+.quick-help-192 { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; margin-top: 16px; padding: 0 22px; border-radius: 9px; background: #b42318; color: #fff; font-weight: 750; text-decoration: none; }
+.quick-help-192:hover { background: #8f1d16; }
+.quick-help-dispatch { margin-top: 16px; }
+.quick-help-more { width: 100%; }
+.nearest-hospital { display: grid; justify-items: start; gap: 8px; margin-top: 16px; }
+.nearest-hospital > p { margin: 0; }
+.nearest-hospital-result { display: grid; gap: 6px; width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: #f7f9fb; }
+.nearest-hospital-result > span { color: var(--muted); font-size: 14px; }
+.quick-help-contacts { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.quick-help-contacts li { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.quick-help-contacts li strong,.quick-help-contacts li small { display: block; }
+.quick-help-contacts li small { margin-top: 3px; color: var(--muted); }
+.quick-help-contact-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.quick-help-panel .back-link { margin-top: 10px; }
+
+@media (max-width: 600px) {
+  .quick-help-heading { gap: 6px; }
+  .quick-help-heading .text-button { flex: none; }
+  .quick-help-panel { padding: 18px; }
+}

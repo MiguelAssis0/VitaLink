@@ -1,19 +1,21 @@
 export type Role = 'PATIENT' | 'DISPATCHER' | 'HOSPITAL_STAFF' | 'DEMO_ADMIN'
 export type User = { id: string; displayName: string; email: string; role: Role; institutionName?: string }
 export type Emergency = {
-  id: string; status: string; simulation: boolean; createdAt: string; version?: number
+  id: string; status: string; simulation: boolean; createdAt: string; version?: number; message?: string
   address?: string; reference?: string; locationSource?: string; latitude?: number; longitude?: number; accuracyMeters?: number
-  notes?: string; hospitalName?: string
+  notes?: string; hospitalName?: string; ambulanceCode?: string
 }
 export type TimelineEvent = { oldStatus: string | null; status: string | null; actorRole: Role; actorLabel: string; occurredAt: string }
 export type MedicalProfile = { address?: string; allergies: string; medications: string; conditions: string; notes: string; updatedAt?: string }
 export type BasicProfile = { displayName: string; email: string; phone: string; address: string }
-export type EmergencyContact = { id?: string; name: string; phone: string; relationship: string }
+export type EmergencyContact = { id?: string; name: string; phone: string; relationship: string; smsOptIn: boolean }
 export type PrivacyRequest = { id: string; type: 'EXPORT' | 'DELETION'; status: 'COMPLETED' | 'PENDING'; createdAt: string; completedAt?: string }
 export type AdminOverview = { users: number; institutions: number; emergencies: number; openEmergencies: number; pendingDeletions: number }
-export type Ambulance = { id: string; code: string; status: 'AVAILABLE' | 'OCCUPIED' | 'OUT_OF_SERVICE' }
+export type Ambulance = { id: string; code: string; status: 'AVAILABLE' | 'OCCUPIED' | 'OUT_OF_SERVICE'; latitude?: number | null; longitude?: number | null }
 export type AmbulanceCrewMember = { id: string; name: string; position: string; phone: string; createdAt: string }
 export type HospitalPatient = { id: string; name: string; birthDate: string; phone: string; createdAt: string }
+export type HospitalLocation = { id: string; name: string; phone: string; latitude: number | null; longitude: number | null; acceptingEmergencies: boolean }
+export type NearestHospital = { id: string; name: string; phone: string; latitude: number; longitude: number; distanceMeters: number }
 
 const base = '/api/v1'
 let csrfValue = ''
@@ -39,7 +41,8 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers.set(csrfHeaderName, csrfValue)
   }
   let response: Response
-  try { response = await fetch(`${base}${path}`, { ...init, headers, credentials: 'include', cache: 'no-store' }) }
+  const url = path.startsWith('/webauthn/') ? path : `${base}${path}`
+  try { response = await fetch(url, { ...init, headers, credentials: 'include', cache: 'no-store' }) }
   catch { throw new Error('Sem conexão com o VitaLink. Em uma emergência real, ligue 192.') }
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
@@ -50,7 +53,28 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const getMe = () => api<User>('/auth/me')
-export const login = (email: string, password: string) => api<User>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+export async function login(email: string, password: string) {
+  const user = await api<User>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+  csrfValue = ''
+  return user
+}
+export const getPasskeyRegistrationOptions = () => api<Record<string, unknown>>('/webauthn/register/options', { method: 'POST' })
+export const savePasskey = (publicKey: unknown) => api<void>('/webauthn/register', { method: 'POST', body: JSON.stringify({ publicKey, label: 'VitaLink' }) })
+export const getPasskeyAuthenticationOptions = () => api<Record<string, unknown>>('/webauthn/authenticate/options', { method: 'POST' })
+export async function loginWithPasskey(credential: unknown) {
+  await ensureCsrf()
+  const response = await fetch('/login/webauthn', {
+    method: 'POST', credentials: 'include', cache: 'no-store',
+    headers: { 'Content-Type': 'application/json', [csrfHeaderName]: csrfValue },
+    body: JSON.stringify(credential),
+  })
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({})) as { detail?: string; title?: string }
+    throw new Error(body.detail || body.title || 'Não foi possível entrar com biometria.')
+  }
+  csrfValue = ''
+  return getMe()
+}
 export const register = (displayName: string, email: string, password: string, adultConfirmed: boolean) => api<{ message: string }>('/auth/register', { method: 'POST', body: JSON.stringify({ displayName, email, password, adultConfirmed }) })
 export const requestPasswordReset = (email: string) => api<{ message: string }>('/auth/password-reset/request', { method: 'POST', body: JSON.stringify({ email }) })
 export const confirmPasswordReset = (token: string, password: string) => api<void>('/auth/password-reset/confirm', { method: 'POST', body: JSON.stringify({ token, password }) })
@@ -66,16 +90,21 @@ export const saveMedicalProfile = (profile: MedicalProfile) => api<MedicalProfil
 export const getBasicProfile = () => api<BasicProfile>('/patients/me')
 export const saveBasicProfile = (profile: BasicProfile) => api<BasicProfile>('/patients/me', { method: 'PUT', body: JSON.stringify(profile) })
 export const getEmergencyContacts = () => api<EmergencyContact[]>('/patients/me/emergency-contacts')
-export const saveEmergencyContacts = (contacts: EmergencyContact[]) => api<EmergencyContact[]>('/patients/me/emergency-contacts', { method: 'PUT', body: JSON.stringify(contacts.map(({ name, phone, relationship }) => ({ name, phone, relationship }))) })
+export const saveEmergencyContacts = (contacts: EmergencyContact[]) => api<EmergencyContact[]>('/patients/me/emergency-contacts', { method: 'PUT', body: JSON.stringify(contacts.map(({ name, phone, relationship, smsOptIn }) => ({ name, phone, relationship, smsOptIn }))) })
+export const deleteEmergencyContact = (id: string) => api<void>(`/patients/me/emergency-contacts/${encodeURIComponent(id)}`, { method: 'DELETE' })
 export const getPrivacyRequests = () => api<PrivacyRequest[]>('/patients/me/privacy-requests')
 export const getAdminOverview = () => api<AdminOverview>('/admin/overview')
 export const getAmbulances = () => api<Ambulance[]>('/central/ambulances')
 export const addAmbulance = (code: string) => api<Ambulance>('/central/ambulances', { method: 'POST', body: JSON.stringify({ code }) })
 export const updateAmbulanceStatus = (id: string, status: Ambulance['status']) => api<Ambulance>(`/central/ambulances/${encodeURIComponent(id)}/status`, { method: 'PUT', body: JSON.stringify({ status }) })
+export const updateAmbulanceLocation = (id: string, location: { latitude: number; longitude: number }) => api<Ambulance>(`/central/ambulances/${encodeURIComponent(id)}/location`, { method: 'PUT', body: JSON.stringify(location) })
 export const getAmbulanceCrew = () => api<AmbulanceCrewMember[]>('/hospital/ambulance-crew')
 export const addAmbulanceCrewMember = (member: Omit<AmbulanceCrewMember, 'id' | 'createdAt'>) => api<AmbulanceCrewMember>('/hospital/ambulance-crew', { method: 'POST', body: JSON.stringify(member) })
 export const getHospitalPatients = () => api<HospitalPatient[]>('/hospital/patients')
 export const addHospitalPatient = (patient: Omit<HospitalPatient, 'id' | 'createdAt'>) => api<HospitalPatient>('/hospital/patients', { method: 'POST', body: JSON.stringify(patient) })
+export const getHospitalLocation = () => api<HospitalLocation>('/hospital/location')
+export const saveHospitalLocation = (location: Pick<HospitalLocation, 'phone' | 'latitude' | 'longitude' | 'acceptingEmergencies'>) => api<HospitalLocation>('/hospital/location', { method: 'PUT', body: JSON.stringify(location) })
+export const getNearestHospital = (latitude: number, longitude: number) => api<NearestHospital>(`/hospitals/nearest?latitude=${latitude}&longitude=${longitude}`)
 export const requestPrivacyAction = (type: PrivacyRequest['type']) => api<{ request: PrivacyRequest; export: unknown | null }>('/patients/me/privacy-requests', { method: 'POST', body: JSON.stringify({ type }) })
 
 export function createEmergency(payload: { location: { source: 'MANUAL' | 'BROWSER'; address: string; reference: string; latitude?: number; longitude?: number; accuracyMeters?: number }; notes: string }, idempotencyKey: string) {

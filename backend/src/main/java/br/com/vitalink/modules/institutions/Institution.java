@@ -10,6 +10,10 @@ public class Institution {
     @Id public UUID id;
     public String name;
     public String kind;
+    public String phone = "";
+    public Double latitude;
+    public Double longitude;
+    @Column(name="accepting_emergencies", nullable=false) public boolean acceptingEmergencies = true;
     @Column(name="is_demo") public boolean demo = true;
     protected Institution() {}
     public Institution(UUID id, String name, String kind) { this.id=id; this.name=name; this.kind=kind; }
