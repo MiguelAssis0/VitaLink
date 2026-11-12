@@ -45,7 +45,6 @@ export function CitizenHomePage() {
       <div className="page-heading">
         <div>
           <div className="eyebrow">ÁREA DO CIDADÃO</div>
-          <h1>Olá, vamos por partes.</h1>
           <p>Acompanhe suas solicitações e mantenha suas informações atualizadas.</p>
         </div>
       </div>
