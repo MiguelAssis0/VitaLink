@@ -1,0 +1,109 @@
+.app-topbar { padding: 0; }
+.app-topbar-inner {
+  width: min(1160px, calc(100% - 48px));
+  min-height: 76px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.app-topbar .brand { flex: none; }
+.brand-name { font-size: 17px; }
+.account-menu { position: relative; flex: none; margin-left: auto; }
+.account-menu summary { list-style: none; cursor: pointer; }
+.account-menu summary:focus-visible { outline: 3px solid #8de1dc; outline-offset: 3px; }
+.account-menu summary::-webkit-details-marker { display: none; }
+.account-summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 11px 5px 6px;
+  border: 1px solid #ffffff24;
+  border-radius: 12px;
+  background: #ffffff0c;
+}
+.account-menu[open] .account-summary,.account-summary:hover { background: #ffffff18; border-color: #ffffff38; }
+.account-avatar {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  place-items: center;
+  border: 1px solid #ffffff38;
+  border-radius: 50%;
+  background: #ffffff18;
+  color: #d3f0ec;
+  font-size: 14px;
+  font-weight: 750;
+}
+.account-copy { display: grid; gap: 3px; min-width: 0; }
+.account-copy strong { max-width: 210px; overflow: hidden; color: #fff; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.account-copy small { color: #b9ced7; font-size: 11px; }
+.account-chevron { width: 16px; height: 16px; flex: none; fill: none; stroke: #c9dbe2; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: transform .15s ease; }
+.account-menu[open] .account-chevron { transform: rotate(180deg); }
+.account-hamburger { display: none; }
+.account-dropdown {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  z-index: 10;
+  width: 268px;
+  padding: 9px;
+  border: 1px solid #dbe4e9;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 12px 32px #102b3b26;
+  color: #18364a;
+}
+.account-dropdown-heading { display: grid; gap: 3px; padding: 10px 11px 12px; border-bottom: 1px solid #e5ebee; }
+.account-dropdown-heading strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.account-dropdown-heading small { color: #647684; font-size: 11px; }
+.account-dropdown > a,.account-logout {
+  display: flex;
+  width: 100%;
+  min-height: 42px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #294356;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+}
+.account-dropdown > a:hover,.account-logout:hover { background: #f0f6f7; }
+.account-dropdown .passkey-enrollment { display: grid; gap: 3px; padding: 2px 0; }
+.account-dropdown .passkey-enrollment > .text-button { display: flex; width: 100%; min-height: 42px; align-items: center; justify-content: flex-start; gap: 9px; padding: 0 11px; border: 0; border-radius: 8px; color: #294356; font-size: 13px; font-weight: 600; text-align: left; text-decoration: none; }
+.account-dropdown .passkey-enrollment > .text-button:hover { background: #f0f6f7; }
+.account-dropdown .passkey-enrollment > .text-button svg,.account-logout svg { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.account-dropdown .passkey-enrollment small { padding: 7px 11px 9px; color: #536575; font-size: 11px; }
+.account-logout { margin-top: 3px; border-top: 1px solid #e5ebee; border-radius: 0 0 8px 8px; color: #9b2c24; }
+
+@media (max-width: 760px) {
+  .app-topbar-inner { width: calc(100% - 36px); min-height: 68px; gap: 9px; }
+  .account-summary { gap: 7px; }
+  .account-avatar { width: 34px; height: 34px; }
+  .account-copy strong { max-width: 150px; font-size: 11px; }
+  .app-nav a { padding: 0 10px; font-size: 12px; }
+}
+
+@media (max-width: 520px) {
+  .app-topbar-inner { width: calc(100% - 24px); gap: 8px; }
+  .brand { gap: 7px; }
+  .brand-mark { width: 34px; height: 34px; border-radius: 10px; font-size: 19px; }
+  .brand-name { font-size: 15px; }
+  .account-menu { margin-left: auto; }
+  .account-summary { width: 44px; min-height: 44px; justify-content: center; padding: 0; border-color: transparent; background: transparent; }
+  .account-menu[open] .account-summary,.account-summary:hover { border-color: #ffffff30; background: #ffffff12; }
+  .account-avatar,.account-copy,.account-chevron { display: none; }
+  .account-hamburger { display: grid; width: 22px; gap: 5px; }
+  .account-hamburger i { display: block; height: 2px; border-radius: 2px; background: #f4f8fa; transition: transform .15s ease, opacity .15s ease; }
+  .account-menu[open] .account-hamburger i:first-child { transform: translateY(7px) rotate(45deg); }
+  .account-menu[open] .account-hamburger i:nth-child(2) { opacity: 0; }
+  .account-menu[open] .account-hamburger i:last-child { transform: translateY(-7px) rotate(-45deg); }
+  .account-dropdown { width: min(268px, calc(100vw - 24px)); }
+}

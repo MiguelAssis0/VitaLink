@@ -138,6 +138,7 @@ export function EmergencyRequestPage() {
           <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
           <span>Entendo que o direcionamento acontece apenas no VitaLink e não aciona uma equipe real. Para atendimento real, ligue 192.</span>
         </label>
+        <p className="hint">Se o envio de SMS estiver ativado, os contatos que autorizaram podem receber sua localização.</p>
         {error && <p className="error" role="alert">{error}</p>}
         <button className="primary full" disabled={busy || !confirmed || !navigator.onLine}>
           {busy ? 'Solicitando…' : 'Solicitar ajuda no VitaLink'}

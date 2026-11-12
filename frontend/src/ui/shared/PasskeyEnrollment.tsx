@@ -21,8 +21,9 @@ export function PasskeyEnrollment() {
 
   return (
     <div className="passkey-enrollment">
-      <button className="text-button" type="button" onClick={() => void enroll()} disabled={busy}>
-        {busy ? 'Ativando…' : 'Ativar biometria'}
+      <button className="text-button" type="button" aria-label={busy ? 'Ativando biometria' : 'Ativar biometria'} onClick={() => void enroll()} disabled={busy}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5z" /><circle cx="12" cy="15" r="1.5" /></svg>
+        <span className="passkey-action-label">{busy ? 'Ativando…' : 'Ativar biometria'}</span>
       </button>
       {message && <small role="status">{message}</small>}
     </div>
