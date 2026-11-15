@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import type { User } from '../../api'
 import { roleHome } from './role-home'
 import { PasskeyEnrollment } from './PasskeyEnrollment'
+import { PatientVoiceCallReceiver } from './PatientVoiceCallReceiver'
 import './AppShell.css'
 
 type AppShellProps = {
@@ -71,6 +72,7 @@ export function AppShell({ children, user, offline, onSignOut }: AppShellProps) 
 
       {offline && <div className="offline global-offline" role="status">Sem conexão: pedidos não podem ser enviados.</div>}
       <main className={isLoginPage ? `login-main${darkTheme ? ' login-dark' : ''}` : undefined}>{children}</main>
+      {user?.role === 'PATIENT' && <PatientVoiceCallReceiver />}
 
       <footer className={`emergency-footer${isLoginPage && darkTheme ? ' login-footer-dark' : ''}`}>
         <div>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, assignHospital, Emergency, getCentral, getEvents, TimelineEvent, transition, list } from '../../../api'
 import { AmbulanceFleetPanel } from './AmbulanceFleetPanel'
+import { DispatcherVoiceCall } from '../../shared/DispatcherVoiceCall'
 
 type MedicalSummary = {
   patientDisplayName: string
@@ -53,7 +54,7 @@ export function CentralPage() {
 
   useEffect(() => {
     void refresh()
-    const timer = window.setInterval(() => { void refresh() }, 10000)
+    const timer = window.setInterval(() => { void refresh() }, 3000)
     return () => window.clearInterval(timer)
   }, [refresh])
 
@@ -138,7 +139,7 @@ export function CentralPage() {
           <dt>Endereço</dt><dd>{selected.address || 'Não informado'}</dd>
           <dt>Ponto de referência</dt><dd>{selected.reference || 'Não informado'}</dd>
           <dt>Precisão da localização</dt><dd>{selected.accuracyMeters == null ? 'Não informada' : `${Math.round(selected.accuracyMeters)} m`}</dd>
-          <dt>Observação</dt><dd>{selected.notes || 'Nenhuma observação'}</dd>
+          <dt>Observação / resumo por voz</dt><dd>{selected.notes || 'Nenhuma observação'}</dd>
           <dt>Unidade vinculada</dt><dd>{selected.hospitalName || 'Nenhuma'}</dd>
           <dt>Ambulância selecionada</dt><dd>{selected.ambulanceCode || 'Nenhuma disponível para esta solicitação'}</dd>
           <dt>Equipe</dt><dd>{selected.crewAssigned ? 'Equipe disponível alocada' : 'Nenhuma equipe alocada'}</dd>
@@ -168,6 +169,7 @@ export function CentralPage() {
           ))}
         </ol>
         <div className="button-row wrap">
+          <DispatcherVoiceCall emergencyId={selected.id} active={!['CLOSED', 'CANCELLED'].includes(selected.status)} />
           {selected.status !== 'CLOSED' && selected.status !== 'CANCELLED' && <>
             {!selected.hospitalName && <button className="secondary" type="button" onClick={() => void linkHospital()} disabled={busy}>Vincular hospital</button>}
             {nextStatus[selected.status] && <button className="primary" type="button" onClick={() => void updateStatus()} disabled={busy}>{nextStatus[selected.status].label}</button>}

@@ -125,6 +125,15 @@ public class EmergencyService {
         setStatus(e,EmergencyStatus.CANCEL_REQUESTED,p.user()); return response(emergencies.save(e));
     }
     @Transactional
+    void updateVoiceSummary(DemoPrincipal p, UUID id, String notes) {
+        MedicalProfileService.requirePatient(p);
+        var e=emergencies.findById(id).filter(item -> item.patient.getId().equals(p.user().id)).orElseThrow(ApiException::notFound);
+        if (!e.status.open()) throw ApiException.conflict("A ocorrência está encerrada.");
+        e.notes=safe(notes);
+        e.updatedAt=Instant.now();
+        audit.record(p.user(),"EMERGENCY_VOICE_SUMMARY_UPDATED","EMERGENCY",e.id);
+    }
+    @Transactional
     Api.EmergencyResponse assignHospital(DemoPrincipal p, UUID id, UUID hospitalId) {
         requireDispatcher(p); var e=centralEmergency(p,id);
         if (!e.status.open()) throw ApiException.conflict("A ocorrência está encerrada.");
@@ -165,7 +174,7 @@ public class EmergencyService {
         if (e.closedAt!=null && e.hospital!=null) grants.active(e.id,e.hospital.getId(),Instant.now()).ifPresent(g -> g.expiresAt=e.closedAt.plus(Duration.ofHours(24)));
     }
     private Api.EmergencySummary summary(Emergency e) { return new Api.EmergencySummary(e.id,true,e.status,e.locationSource,e.address,e.referencePoint,e.latitude,e.longitude,e.accuracyMeters,e.notes,e.version,e.createdAt,e.hospital==null?null:e.hospital.getName(),e.ambulance==null?null:e.ambulance.code,!e.crewMembers.isEmpty()); }
-    private Api.HospitalEmergencySummary hospitalSummary(Emergency e) { return new Api.HospitalEmergencySummary(e.id,true,e.status,e.version,e.createdAt,e.ambulance==null?null:e.ambulance.code,!e.crewMembers.isEmpty(),e.crewMembers.stream().map(member -> member.name).toList()); }
+    private Api.HospitalEmergencySummary hospitalSummary(Emergency e) { return new Api.HospitalEmergencySummary(e.id,true,e.status,e.version,e.createdAt,e.ambulance==null?null:e.ambulance.code,!e.crewMembers.isEmpty(),e.crewMembers.stream().map(member -> member.name).toList(),e.notes); }
     private Api.EmergencyResponse response(Emergency e) {
         String message=e.ambulance!=null?"Ambulância, equipe e hospital selecionados automaticamente nesta simulação. Nenhuma equipe real foi acionada.":
             e.status==EmergencyStatus.REQUESTED?"Pedido simulado registrado; aguardando localização e recursos disponíveis. Nenhuma ambulância real foi acionada.":"Estado atualizado no ambiente de SIMULAÇÃO. Nenhuma ambulância real foi acionada.";

@@ -19,6 +19,10 @@ docker compose up --build
 
 Abra <http://localhost:5173>. A API local responde em <http://localhost:8080>. O PostgreSQL é publicado somente em `127.0.0.1`. As credenciais padrão do Compose são exclusivamente locais e sintéticas; não reutilize esses valores fora do computador de desenvolvimento.
 
+O atendimento por voz com Gemini Live é opcional. Para habilitá-lo, crie uma chave da Gemini API no Google AI Studio e preencha `GEMINI_API_KEY` no `.env`; a chave fica apenas no backend, que emite um token temporário para a sessão de áudio. O modelo configurado é `gemini-3.8-live`. O plano gratuito tem cotas sujeitas a alterações; confira a [página de preços da Gemini API](https://ai.google.dev/gemini-api/docs/pricing). O áudio é enviado ao Google, então use somente dados fictícios.
+
+A central também pode iniciar uma chamada de voz simulada pelo navegador; o paciente precisa estar conectado ao VitaLink para atendê-la. Essa chamada não usa telefonia e depende de uma conexão de áudio direta entre os dois navegadores.
+
 Para recuperar uma senha no ambiente local, use **Esqueci minha senha** na tela de login e consulte a caixa de entrada fictícia do Mailpit em <http://localhost:8025>. O link expira em 30 minutos e não é exibido pela API.
 
 Para encerrar, use `Ctrl+C` e `docker compose down`. Para apagar também o banco sintético, use `docker compose down -v`.

@@ -16,6 +16,7 @@ export type AmbulanceCrewMember = { id: string; name: string; position: string; 
 export type HospitalPatient = { id: string; name: string; birthDate: string; phone: string; createdAt: string }
 export type HospitalLocation = { id: string; name: string; phone: string; latitude: number | null; longitude: number | null; acceptingEmergencies: boolean }
 export type NearestHospital = { id: string; name: string; phone: string; latitude: number; longitude: number; distanceMeters: number }
+export type VoiceCall = { id: string; emergencyId: string; status: 'RINGING' | 'CONNECTED' | 'DECLINED' | 'ENDED'; offer?: string; answer?: string }
 
 const base = '/api/v1'
 let csrfValue = ''
@@ -114,5 +115,15 @@ export function createEmergency(payload: { location: { source: 'MANUAL' | 'BROWS
 export const transition = (id: string, status: string, expectedVersion: number) => api<Emergency>(`/central/emergencies/${encodeURIComponent(id)}/transitions`, { method: 'POST', body: JSON.stringify({ status, expectedVersion }) })
 export const assignHospital = (id: string, hospitalInstitutionId: string) => api<void>(`/central/emergencies/${encodeURIComponent(id)}/hospital-assignment`, { method: 'POST', body: JSON.stringify({ hospitalInstitutionId }) })
 export const requestCancel = (id: string) => api<void>(`/emergencies/${encodeURIComponent(id)}/request-cancel`, { method: 'POST' })
+export const updateEmergencyVoiceSummary = (id: string, summary: string) => api<void>(`/emergencies/${encodeURIComponent(id)}/voice-summary`, { method: 'PUT', body: JSON.stringify({ summary }) })
+export const getGeminiLiveToken = () => api<{ token: string; model: string }>('/ai/live-token', { method: 'POST' })
+export const startVoiceCall = (id: string) => api<VoiceCall>(`/central/emergencies/${encodeURIComponent(id)}/voice-call`, { method: 'POST' })
+export const getVoiceCall = (id: string) => api<VoiceCall>(`/central/emergencies/${encodeURIComponent(id)}/voice-call`)
+export const getIncomingVoiceCall = () => api<VoiceCall | null>('/patient/voice-call')
+export const sendVoiceOffer = (id: string, sdp: string) => api<VoiceCall>(`/central/voice-calls/${encodeURIComponent(id)}/offer`, { method: 'POST', body: JSON.stringify({ sdp }) })
+export const sendVoiceAnswer = (id: string, sdp: string) => api<VoiceCall>(`/patient/voice-calls/${encodeURIComponent(id)}/answer`, { method: 'POST', body: JSON.stringify({ sdp }) })
+export const connectVoiceCall = (id: string) => api<VoiceCall>(`/voice-calls/${encodeURIComponent(id)}/connected`, { method: 'POST' })
+export const endVoiceCall = (id: string) => api<VoiceCall>(`/voice-calls/${encodeURIComponent(id)}/end`, { method: 'POST' })
+export const declineVoiceCall = (id: string) => api<VoiceCall>(`/patient/voice-calls/${encodeURIComponent(id)}/decline`, { method: 'POST' })
 
 export const list = <T,>(value: T[] | { content: T[] } | undefined): T[] => Array.isArray(value) ? value : value?.content || []

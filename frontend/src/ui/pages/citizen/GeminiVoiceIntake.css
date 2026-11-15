@@ -1,0 +1,4 @@
+.voice-intake { margin-top: 16px; }
+.voice-intake h2 { margin: 8px 0; }
+.voice-intake p { margin: 8px 0 14px; }
+.voice-intake small { display: block; margin-top: 12px; color: var(--muted, #536575); }

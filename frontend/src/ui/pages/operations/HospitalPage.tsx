@@ -46,7 +46,7 @@ export function HospitalPage() {
 
   useEffect(() => {
     void refresh()
-    const timer = window.setInterval(() => { void refresh() }, 10000)
+    const timer = window.setInterval(() => { void refresh() }, 3000)
     return () => window.clearInterval(timer)
   }, [refresh])
 
@@ -119,6 +119,7 @@ export function HospitalPage() {
         <p><strong>{statusLabel[selected.status] || selected.status}</strong></p>
         <p><strong>Ambulância:</strong> {selected.ambulanceCode || 'Ainda não selecionada'}</p>
         <p><strong>Equipe:</strong> {selected.crewMemberNames?.join(', ') || (selected.crewAssigned ? 'Equipe alocada' : 'Ainda não alocada')}</p>
+        {selected.notes && <p><strong>Atualização da ocorrência:</strong> {selected.notes}</p>}
         <ol className="timeline-list">
           {events.map((event, index) => (
             <li key={`${event.occurredAt}-${index}`}>

@@ -5,6 +5,7 @@ import br.com.vitalink.shared.api.Api;
 
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -22,6 +23,9 @@ public class EmergencyController {
     @GetMapping("/emergencies/{id}") public Object detail(@AuthenticationPrincipal DemoPrincipal p,@PathVariable UUID id) { return service.detail(p,id); }
     @GetMapping("/emergencies/{id}/events") public List<Api.TimelineEvent> events(@AuthenticationPrincipal DemoPrincipal p,@PathVariable UUID id) { return service.timeline(p,id); }
     @PostMapping("/emergencies/{id}/request-cancel") public Api.EmergencyResponse cancel(@AuthenticationPrincipal DemoPrincipal p,@PathVariable UUID id) { return service.requestCancel(p,id); }
+    @PutMapping("/emergencies/{id}/voice-summary")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateVoiceSummary(@AuthenticationPrincipal DemoPrincipal p,@PathVariable UUID id,@Valid @RequestBody Api.VoiceSummaryRequest body) { service.updateVoiceSummary(p,id,body.summary()); }
     @GetMapping("/central/emergencies")
     public Page<Api.EmergencySummary> central(@AuthenticationPrincipal DemoPrincipal p,@RequestParam(required=false) EmergencyStatus status,
                                        @RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size) { return service.centralList(p,status,page,size); }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { createEmergency, Emergency } from '../../../api'
+import { GeminiVoiceIntake } from './GeminiVoiceIntake'
 
 export function EmergencyRequestPage() {
   const [address, setAddress] = useState('')
@@ -37,6 +38,16 @@ export function EmergencyRequestPage() {
     }
   }, [useCurrentLocation])
 
+  const payload = {
+    location: {
+      source: coords ? 'BROWSER' as const : 'MANUAL' as const,
+      address,
+      reference,
+      ...(coords ? { latitude: coords.latitude, longitude: coords.longitude, accuracyMeters: coords.accuracy } : {}),
+    },
+    notes,
+  }
+
   async function submit(event: React.FormEvent) {
     event.preventDefault()
     setError('')
@@ -44,19 +55,6 @@ export function EmergencyRequestPage() {
     if (!confirmed) { setError('Confirme que esta solicitação não encaminha uma equipe de emergência.'); return }
     setBusy(true)
     try {
-      const payload = {
-        location: {
-          source: coords ? 'BROWSER' as const : 'MANUAL' as const,
-          address,
-          reference,
-          ...(coords ? {
-            latitude: coords.latitude,
-            longitude: coords.longitude,
-            accuracyMeters: coords.accuracy,
-          } : {}),
-        },
-        notes,
-      }
       const serialized = JSON.stringify(payload)
       if (!idempotency.current || idempotency.current.payload !== serialized) idempotency.current = { payload: serialized, key: crypto.randomUUID() }
       setCreated(await createEmergency(payload, idempotency.current.key))
@@ -64,10 +62,10 @@ export function EmergencyRequestPage() {
     finally { setBusy(false) }
   }
 
-  if (created) {
-    return (
-      <div className="page narrow">
-        <section className="success-card card">
+  return (
+    <div className="page narrow">
+      <Link className="back-link" to="/patient">← Início</Link>
+      {created ? <section className="success-card card">
           <span className="success-icon">✓</span>
           <span className="sim-badge">SIMULAÇÃO</span>
           <h1>Pedido simulado registrado</h1>
@@ -83,14 +81,7 @@ export function EmergencyRequestPage() {
             </button>
             <Link className="secondary" to="/patient">Voltar ao início</Link>
           </div>
-        </section>
-      </div>
-    )
-  }
-
-  return (
-    <div className="page narrow">
-      <Link className="back-link" to="/patient">← Início</Link>
+        </section> : <>
       <div className="eyebrow">NOVA SOLICITAÇÃO · SIMULAÇÃO</div>
       <h1>Solicitar atendimento</h1>
       <form className="card form-card" onSubmit={submit}>
@@ -145,6 +136,8 @@ export function EmergencyRequestPage() {
           {busy ? 'Solicitando…' : 'Solicitar ajuda no VitaLink'}
         </button>
       </form>
+      </>}
+      <GeminiVoiceIntake payload={payload} confirmed={confirmed} created={created} onCreated={setCreated} />
     </div>
   )
 }
