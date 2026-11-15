@@ -12,6 +12,7 @@ public class AmbulanceCrewMember {
     @Column(nullable=false, length=120) public String name;
     @Column(nullable=false, length=80) public String position;
     @Column(nullable=false, length=30) public String phone="";
+    @Column(nullable=false) public boolean available=true;
     @Column(name="created_at", nullable=false) public Instant createdAt=Instant.now();
     protected AmbulanceCrewMember() {}
     public AmbulanceCrewMember(Institution hospital, String name, String position, String phone) {

@@ -5,6 +5,8 @@ import br.com.vitalink.modules.hospital.AmbulanceCrewMember;
 import br.com.vitalink.modules.hospital.AmbulanceCrewRepository;
 import br.com.vitalink.modules.hospital.HospitalPatient;
 import br.com.vitalink.modules.hospital.HospitalPatientRepository;
+import br.com.vitalink.modules.emergencies.EmergencyRepository;
+import br.com.vitalink.modules.emergencies.EmergencyStatus;
 import br.com.vitalink.modules.audit.AuditService;
 import br.com.vitalink.shared.api.Api;
 import br.com.vitalink.shared.domain.Role;
@@ -13,6 +15,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,10 +26,11 @@ public class OperationsRegistryController {
     private final AmbulanceCrewRepository crew;
     private final HospitalPatientRepository patients;
     private final AuditService audit;
+    private final EmergencyRepository emergencies;
 
     public OperationsRegistryController(AmbulanceRepository ambulances, AmbulanceCrewRepository crew,
-                                        HospitalPatientRepository patients, AuditService audit) {
-        this.ambulances=ambulances; this.crew=crew; this.patients=patients; this.audit=audit;
+                                        HospitalPatientRepository patients, AuditService audit, EmergencyRepository emergencies) {
+        this.ambulances=ambulances; this.crew=crew; this.patients=patients; this.audit=audit; this.emergencies=emergencies;
     }
 
     @GetMapping("/central/ambulances")
@@ -83,6 +87,20 @@ public class OperationsRegistryController {
         return crewResponse(member);
     }
 
+    @PutMapping("/hospital/ambulance-crew/{id}/availability")
+    @Transactional
+    public Api.AmbulanceCrewResponse updateCrewAvailability(@AuthenticationPrincipal DemoPrincipal principal,
+            @PathVariable UUID id, @Valid @RequestBody Api.AmbulanceCrewAvailabilityRequest body) {
+        var hospital=hospital(principal);
+        var member=crew.lockByIdAndHospitalId(id,hospital.getId()).orElseThrow(ApiException::notFound);
+        if (emergencies.hasActiveCrewAssignment(id, List.of(EmergencyStatus.REQUESTED, EmergencyStatus.ACKNOWLEDGED,
+                EmergencyStatus.RESOURCE_ASSIGNED, EmergencyStatus.EN_ROUTE, EmergencyStatus.ON_SCENE, EmergencyStatus.CANCEL_REQUESTED)))
+            throw ApiException.conflict("A equipe está alocada a uma ocorrência em andamento.");
+        member.available=body.available();
+        audit.record(principal.user(),"HOSPITAL_CREW_AVAILABILITY_UPDATED","HOSPITAL_CREW",member.id);
+        return crewResponse(crew.save(member));
+    }
+
     @GetMapping("/hospital/patients")
     public List<Api.HospitalPatientResponse> patients(@AuthenticationPrincipal DemoPrincipal principal) {
         var hospital=hospital(principal);
@@ -102,7 +120,7 @@ public class OperationsRegistryController {
         return new Api.AmbulanceResponse(item.id,item.code,item.status,item.latitude,item.longitude);
     }
     private Api.AmbulanceCrewResponse crewResponse(AmbulanceCrewMember item) {
-        return new Api.AmbulanceCrewResponse(item.id,item.name,item.position,item.phone,item.createdAt);
+        return new Api.AmbulanceCrewResponse(item.id,item.name,item.position,item.phone,item.available,item.createdAt);
     }
     private Api.HospitalPatientResponse patientResponse(HospitalPatient item) {
         return new Api.HospitalPatientResponse(item.id,item.name,item.birthDate,item.phone,item.createdAt);

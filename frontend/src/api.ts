@@ -3,7 +3,7 @@ export type User = { id: string; displayName: string; email: string; role: Role;
 export type Emergency = {
   id: string; status: string; simulation: boolean; createdAt: string; version?: number; message?: string
   address?: string; reference?: string; locationSource?: string; latitude?: number; longitude?: number; accuracyMeters?: number
-  notes?: string; hospitalName?: string; ambulanceCode?: string
+  notes?: string; hospitalName?: string; ambulanceCode?: string; crewAssigned?: boolean; crewMemberNames?: string[]
 }
 export type TimelineEvent = { oldStatus: string | null; status: string | null; actorRole: Role; actorLabel: string; occurredAt: string }
 export type MedicalProfile = { address?: string; allergies: string; medications: string; conditions: string; notes: string; updatedAt?: string }
@@ -12,7 +12,7 @@ export type EmergencyContact = { id?: string; name: string; phone: string; relat
 export type PrivacyRequest = { id: string; type: 'EXPORT' | 'DELETION'; status: 'COMPLETED' | 'PENDING'; createdAt: string; completedAt?: string }
 export type AdminOverview = { users: number; institutions: number; emergencies: number; openEmergencies: number; pendingDeletions: number }
 export type Ambulance = { id: string; code: string; status: 'AVAILABLE' | 'OCCUPIED' | 'OUT_OF_SERVICE'; latitude?: number | null; longitude?: number | null }
-export type AmbulanceCrewMember = { id: string; name: string; position: string; phone: string; createdAt: string }
+export type AmbulanceCrewMember = { id: string; name: string; position: string; phone: string; available: boolean; createdAt: string }
 export type HospitalPatient = { id: string; name: string; birthDate: string; phone: string; createdAt: string }
 export type HospitalLocation = { id: string; name: string; phone: string; latitude: number | null; longitude: number | null; acceptingEmergencies: boolean }
 export type NearestHospital = { id: string; name: string; phone: string; latitude: number; longitude: number; distanceMeters: number }
@@ -99,7 +99,8 @@ export const addAmbulance = (code: string) => api<Ambulance>('/central/ambulance
 export const updateAmbulanceStatus = (id: string, status: Ambulance['status']) => api<Ambulance>(`/central/ambulances/${encodeURIComponent(id)}/status`, { method: 'PUT', body: JSON.stringify({ status }) })
 export const updateAmbulanceLocation = (id: string, location: { latitude: number; longitude: number }) => api<Ambulance>(`/central/ambulances/${encodeURIComponent(id)}/location`, { method: 'PUT', body: JSON.stringify(location) })
 export const getAmbulanceCrew = () => api<AmbulanceCrewMember[]>('/hospital/ambulance-crew')
-export const addAmbulanceCrewMember = (member: Omit<AmbulanceCrewMember, 'id' | 'createdAt'>) => api<AmbulanceCrewMember>('/hospital/ambulance-crew', { method: 'POST', body: JSON.stringify(member) })
+export const addAmbulanceCrewMember = (member: Omit<AmbulanceCrewMember, 'id' | 'createdAt' | 'available'>) => api<AmbulanceCrewMember>('/hospital/ambulance-crew', { method: 'POST', body: JSON.stringify(member) })
+export const updateAmbulanceCrewAvailability = (id: string, available: boolean) => api<AmbulanceCrewMember>(`/hospital/ambulance-crew/${encodeURIComponent(id)}/availability`, { method: 'PUT', body: JSON.stringify({ available }) })
 export const getHospitalPatients = () => api<HospitalPatient[]>('/hospital/patients')
 export const addHospitalPatient = (patient: Omit<HospitalPatient, 'id' | 'createdAt'>) => api<HospitalPatient>('/hospital/patients', { method: 'POST', body: JSON.stringify(patient) })
 export const getHospitalLocation = () => api<HospitalLocation>('/hospital/location')

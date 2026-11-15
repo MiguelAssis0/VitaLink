@@ -6,6 +6,8 @@ import br.com.vitalink.modules.audit.AuditService;
 import br.com.vitalink.modules.fleet.Ambulance;
 import br.com.vitalink.modules.fleet.AmbulanceRepository;
 import br.com.vitalink.modules.fleet.AmbulanceStatus;
+import br.com.vitalink.modules.hospital.AmbulanceCrewMember;
+import br.com.vitalink.modules.hospital.AmbulanceCrewRepository;
 import br.com.vitalink.modules.institutions.GeoDistance;
 import br.com.vitalink.modules.institutions.Institution;
 import br.com.vitalink.modules.institutions.InstitutionRepository;
@@ -40,6 +42,7 @@ public class EmergencyService {
     private final InstitutionService institutions;
     private final InstitutionRepository institutionRepository;
     private final AmbulanceRepository ambulances;
+    private final AmbulanceCrewRepository crew;
     private final MedicalProfileRepository profiles;
     private final IdempotencyRecordRepository idempotency; private final StatusEventRepository events;
     private final AccessGrantRepository grants; private final AuditService audit; private final ObjectMapper mapper;
@@ -47,9 +50,9 @@ public class EmergencyService {
     public EmergencyService(EmergencyRepository emergencies, InstitutionService institutions, MedicalProfileRepository profiles,
                      IdempotencyRecordRepository idempotency, StatusEventRepository events, AccessGrantRepository grants,
                      AuditService audit, ObjectMapper mapper, InstitutionRepository institutionRepository, AmbulanceRepository ambulances,
-                     ApplicationEventPublisher publisher) {
+                     AmbulanceCrewRepository crew, ApplicationEventPublisher publisher) {
         this.emergencies=emergencies; this.institutions=institutions; this.institutionRepository=institutionRepository;
-        this.ambulances=ambulances; this.profiles=profiles;
+        this.ambulances=ambulances; this.crew=crew; this.profiles=profiles;
         this.idempotency=idempotency; this.events=events; this.grants=grants; this.audit=audit; this.mapper=mapper; this.publisher=publisher;
     }
 
@@ -157,26 +160,40 @@ public class EmergencyService {
         events.save(new StatusEvent(e,old.name(),next.name(),actor)); audit.record(actor,"STATUS_CHANGED","EMERGENCY",e.id);
         if ((next==EmergencyStatus.CLOSED || next==EmergencyStatus.CANCELLED) && e.ambulance!=null)
             e.ambulance.status=AmbulanceStatus.AVAILABLE;
+        if (next==EmergencyStatus.CLOSED || next==EmergencyStatus.CANCELLED)
+            e.crewMembers.forEach(member -> member.available=true);
         if (e.closedAt!=null && e.hospital!=null) grants.active(e.id,e.hospital.getId(),Instant.now()).ifPresent(g -> g.expiresAt=e.closedAt.plus(Duration.ofHours(24)));
     }
-    private Api.EmergencySummary summary(Emergency e) { return new Api.EmergencySummary(e.id,true,e.status,e.locationSource,e.address,e.referencePoint,e.latitude,e.longitude,e.accuracyMeters,e.notes,e.version,e.createdAt,e.hospital==null?null:e.hospital.getName(),e.ambulance==null?null:e.ambulance.code); }
-    private Api.HospitalEmergencySummary hospitalSummary(Emergency e) { return new Api.HospitalEmergencySummary(e.id,true,e.status,e.version,e.createdAt,e.ambulance==null?null:e.ambulance.code); }
+    private Api.EmergencySummary summary(Emergency e) { return new Api.EmergencySummary(e.id,true,e.status,e.locationSource,e.address,e.referencePoint,e.latitude,e.longitude,e.accuracyMeters,e.notes,e.version,e.createdAt,e.hospital==null?null:e.hospital.getName(),e.ambulance==null?null:e.ambulance.code,!e.crewMembers.isEmpty()); }
+    private Api.HospitalEmergencySummary hospitalSummary(Emergency e) { return new Api.HospitalEmergencySummary(e.id,true,e.status,e.version,e.createdAt,e.ambulance==null?null:e.ambulance.code,!e.crewMembers.isEmpty(),e.crewMembers.stream().map(member -> member.name).toList()); }
     private Api.EmergencyResponse response(Emergency e) {
-        String message=e.ambulance!=null?"Ambulância e hospital selecionados automaticamente nesta simulação. Nenhuma equipe real foi acionada.":
+        String message=e.ambulance!=null?"Ambulância, equipe e hospital selecionados automaticamente nesta simulação. Nenhuma equipe real foi acionada.":
             e.status==EmergencyStatus.REQUESTED?"Pedido simulado registrado; aguardando localização e recursos disponíveis. Nenhuma ambulância real foi acionada.":"Estado atualizado no ambiente de SIMULAÇÃO. Nenhuma ambulância real foi acionada.";
-        return new Api.EmergencyResponse(e.id,true,e.status,e.version,message,e.createdAt,e.ambulance==null?null:e.ambulance.code,e.hospital==null?null:e.hospital.getName());
+        return new Api.EmergencyResponse(e.id,true,e.status,e.version,message,e.createdAt,e.ambulance==null?null:e.ambulance.code,e.hospital==null?null:e.hospital.getName(),!e.crewMembers.isEmpty());
     }
     private boolean dispatchAutomatically(Emergency emergency, AppUser actor) {
         if (!"BROWSER".equals(emergency.locationSource) || emergency.latitude==null || emergency.longitude==null) return false;
-        Institution hospital=institutionRepository.findByKindAndAcceptingEmergenciesTrueAndLatitudeIsNotNullAndLongitudeIsNotNull("HOSPITAL").stream()
-            .min(Comparator.comparingDouble(item -> GeoDistance.meters(emergency.latitude,emergency.longitude,item.latitude,item.longitude))).orElse(null);
+        var nearestHospitals=institutionRepository.findByKindAndAcceptingEmergenciesTrueAndLatitudeIsNotNullAndLongitudeIsNotNull("HOSPITAL").stream()
+            .sorted(Comparator.comparingDouble(item -> GeoDistance.meters(emergency.latitude,emergency.longitude,item.latitude,item.longitude))).toList();
+        Institution hospital=null;
+        AmbulanceCrewMember driver=null, responder=null;
+        for (var candidate : nearestHospitals) {
+            var available=crew.lockAvailableByHospitalId(candidate.getId());
+            var candidateDriver=available.stream().filter(member -> member.position.equalsIgnoreCase("Condutor")).findFirst().orElse(null);
+            var candidateResponder=available.stream().filter(member -> !member.position.equalsIgnoreCase("Condutor")).findFirst().orElse(null);
+            if (candidateDriver!=null && candidateResponder!=null) {
+                hospital=candidate; driver=candidateDriver; responder=candidateResponder; break;
+            }
+        }
         if (hospital==null) return false;
         Ambulance ambulance=ambulances.lockAvailableWithLocation(emergency.central.getId(),AmbulanceStatus.AVAILABLE).stream()
             .min(Comparator.comparingDouble(item -> GeoDistance.meters(emergency.latitude,emergency.longitude,item.latitude,item.longitude))).orElse(null);
         if (ambulance==null) return false;
         ambulance.status=AmbulanceStatus.OCCUPIED;
+        driver.available=false; responder.available=false;
         emergency.ambulance=ambulance;
         emergency.hospital=hospital;
+        emergency.crewMembers.addAll(List.of(driver,responder));
         emergency.status=EmergencyStatus.RESOURCE_ASSIGNED;
         emergency.updatedAt=Instant.now();
         grants.save(new AccessGrant(emergency,hospital,actor,null));

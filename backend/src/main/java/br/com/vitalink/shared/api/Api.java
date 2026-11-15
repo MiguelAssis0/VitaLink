@@ -29,14 +29,14 @@ public final class Api {
                     @DecimalMin("0.0") @DecimalMax("100000.0") Double accuracyMeters) {}
     public record CreateEmergencyRequest(@NotNull @Valid Location location, @Size(max=500) String notes) {}
     public record EmergencyResponse(UUID id, boolean simulation, EmergencyStatus status, long version, String message, Instant createdAt,
-                                    String ambulanceCode, String hospitalName) {}
+                                    String ambulanceCode, String hospitalName, boolean crewAssigned) {}
     public record TransitionRequest(@NotNull EmergencyStatus status, @NotNull @PositiveOrZero Long expectedVersion) {}
     public record AssignmentRequest(@NotNull UUID hospitalInstitutionId) {}
     public record EmergencySummary(UUID id, boolean simulation, EmergencyStatus status, String locationSource, String address,
                             String reference, Double latitude, Double longitude, Double accuracyMeters, String notes,
-                            long version, Instant createdAt, String hospitalName, String ambulanceCode) {}
+                            long version, Instant createdAt, String hospitalName, String ambulanceCode, boolean crewAssigned) {}
     public record HospitalEmergencySummary(UUID id, boolean simulation, EmergencyStatus status, long version, Instant createdAt,
-                                           String ambulanceCode) {}
+                                           String ambulanceCode, boolean crewAssigned, List<String> crewMemberNames) {}
     public record MedicalProfileRequest(@Size(max=240) String address, @Size(max=1000) String allergies, @Size(max=1000) String medications,
                                  @Size(max=1000) String conditions, @Size(max=1000) String notes) {}
     public record MedicalProfileResponse(String address, String allergies, String medications, String conditions, String notes,
@@ -67,7 +67,8 @@ public final class Api {
     public record AmbulanceResponse(UUID id, String code, AmbulanceStatus status, Double latitude, Double longitude) {}
     public record AmbulanceCrewRequest(@NotBlank @Size(max=120) String name, @NotBlank @Size(max=80) String position,
                                       @Size(max=30) String phone) {}
-    public record AmbulanceCrewResponse(UUID id, String name, String position, String phone, Instant createdAt) {}
+    public record AmbulanceCrewAvailabilityRequest(@NotNull Boolean available) {}
+    public record AmbulanceCrewResponse(UUID id, String name, String position, String phone, boolean available, Instant createdAt) {}
     public record HospitalPatientRequest(@NotBlank @Size(max=120) String name, @NotNull @Past LocalDate birthDate,
                                          @Size(max=30) String phone) {}
     public record HospitalPatientResponse(UUID id, String name, LocalDate birthDate, String phone, Instant createdAt) {}

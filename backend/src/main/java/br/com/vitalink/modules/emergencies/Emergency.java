@@ -3,10 +3,13 @@ package br.com.vitalink.modules.emergencies;
 import br.com.vitalink.modules.auth.AppUser;
 import br.com.vitalink.modules.fleet.Ambulance;
 import br.com.vitalink.modules.institutions.Institution;
+import br.com.vitalink.modules.hospital.AmbulanceCrewMember;
 
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity @Table(name="emergencies")
 public class Emergency {
@@ -15,6 +18,9 @@ public class Emergency {
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="central_id") public Institution central;
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="hospital_id") public Institution hospital;
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="ambulance_id") public Ambulance ambulance;
+    @ManyToMany
+    @JoinTable(name="emergency_ambulance_crew", joinColumns=@JoinColumn(name="emergency_id"), inverseJoinColumns=@JoinColumn(name="crew_member_id"))
+    public List<AmbulanceCrewMember> crewMembers=new ArrayList<>();
     @Enumerated(EnumType.STRING) public EmergencyStatus status;
     @Column(name="is_simulation") public boolean simulation = true;
     @Column(name="location_source") public String locationSource;

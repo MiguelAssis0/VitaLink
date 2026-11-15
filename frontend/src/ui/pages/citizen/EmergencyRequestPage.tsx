@@ -75,6 +75,7 @@ export function EmergencyRequestPage() {
           <p>{created.message || 'O pedido foi registrado no VitaLink.'}</p>
           {created.ambulanceCode && <p>Ambulância simulada: <strong>{created.ambulanceCode}</strong></p>}
           {created.hospitalName && <p>Hospital selecionado: <strong>{created.hospitalName}</strong></p>}
+          {created.crewAssigned && <p>Equipe disponível do hospital alocada nesta simulação.</p>}
           <p className="muted">Identificador: {created.id}</p>
           <div className="button-row">
             <button className="primary" onClick={() => navigate(`/patient/emergencies/${created.id}`)}>

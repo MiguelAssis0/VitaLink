@@ -63,6 +63,7 @@ export function EmergencyDetailsPage() {
           {request.ambulanceCode && <section className="info-card" aria-label="Recursos selecionados na simulação">
             <h2>Recursos selecionados</h2>
             <p>Ambulância <strong>{request.ambulanceCode}</strong>{request.hospitalName ? <> · Hospital <strong>{request.hospitalName}</strong></> : null}</p>
+            {request.crewAssigned && <p>Equipe disponível alocada.</p>}
             <p className="hint">Seleção simulada por distância e disponibilidade. Nenhuma equipe real foi acionada.</p>
           </section>}
           {!request.ambulanceCode && request.status === 'REQUESTED' && <p className="hint">Solicitação registrada na simulação e aguardando disponibilidade de recursos. Nenhuma ambulância real foi acionada.</p>}

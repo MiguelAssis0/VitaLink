@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { addAmbulanceCrewMember, addHospitalPatient, getAmbulanceCrew, getHospitalPatients, type AmbulanceCrewMember, type HospitalPatient } from '../../../api'
+import { addAmbulanceCrewMember, addHospitalPatient, getAmbulanceCrew, getHospitalPatients, updateAmbulanceCrewAvailability, type AmbulanceCrewMember, type HospitalPatient } from '../../../api'
 import './HospitalRegistryPanel.css'
 
 type Registry = 'crew' | 'patients'
@@ -17,6 +17,7 @@ export function HospitalRegistryPanel({ registry }: { registry: Registry }) {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [updatingCrewId, setUpdatingCrewId] = useState('')
 
   const refresh = useCallback(async () => {
     try {
@@ -47,6 +48,15 @@ export function HospitalRegistryPanel({ registry }: { registry: Registry }) {
     finally { setSaving(false) }
   }
 
+  async function toggleAvailability(member: AmbulanceCrewMember) {
+    setUpdatingCrewId(member.id); setError('')
+    try {
+      const updated = await updateAmbulanceCrewAvailability(member.id, !member.available)
+      setCrew(current => current.map(item => item.id === member.id ? updated : item))
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível atualizar a disponibilidade.') }
+    finally { setUpdatingCrewId('') }
+  }
+
   const isCrew = registry === 'crew'
   return <section className="registry-layout" aria-labelledby="registry-heading">
     <div className="card registry-form-card">
@@ -75,7 +85,7 @@ export function HospitalRegistryPanel({ registry }: { registry: Registry }) {
     <div className="card registry-list-card">
       <div className="registry-list-heading"><h2>{isCrew ? 'Equipe de ambulância' : 'Pacientes cadastrados'}</h2><span className="tag">{isCrew ? crew.length : patients.length}</span></div>
       {loading ? <p className="muted">Carregando…</p> : isCrew ? crew.length === 0 ? <p className="muted">Nenhum funcionário cadastrado.</p> :
-        <ul className="registry-list">{crew.map(member => <li key={member.id}><strong>{member.name}</strong><span>{member.position}</span>{member.phone && <small>{member.phone}</small>}</li>)}</ul>
+        <ul className="registry-list">{crew.map(member => <li key={member.id}><strong>{member.name}</strong><span>{member.position} · {member.available ? 'Disponível' : 'Indisponível'}</span>{member.phone && <small>{member.phone}</small>}<button className="secondary" type="button" disabled={updatingCrewId === member.id} onClick={() => void toggleAvailability(member)}>{updatingCrewId === member.id ? 'Atualizando…' : member.available ? 'Marcar indisponível' : 'Marcar disponível'}</button></li>)}</ul>
         : patients.length === 0 ? <p className="muted">Nenhum paciente cadastrado.</p> :
           <ul className="registry-list">{patients.map(patient => <li key={patient.id}><strong>{patient.name}</strong><span>Nascimento: {new Date(`${patient.birthDate}T12:00:00`).toLocaleDateString('pt-BR')}</span>{patient.phone && <small>{patient.phone}</small>}</li>)}</ul>}
     </div>

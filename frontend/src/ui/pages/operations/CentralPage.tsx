@@ -141,8 +141,9 @@ export function CentralPage() {
           <dt>Observação</dt><dd>{selected.notes || 'Nenhuma observação'}</dd>
           <dt>Unidade vinculada</dt><dd>{selected.hospitalName || 'Nenhuma'}</dd>
           <dt>Ambulância selecionada</dt><dd>{selected.ambulanceCode || 'Nenhuma disponível para esta solicitação'}</dd>
+          <dt>Equipe</dt><dd>{selected.crewAssigned ? 'Equipe disponível alocada' : 'Nenhuma equipe alocada'}</dd>
         </dl>
-        {selected.status === 'RESOURCE_ASSIGNED' && <p className="hint">Ambulância e hospital selecionados automaticamente nesta simulação por distância e disponibilidade. Nenhuma equipe real foi acionada.</p>}
+        {selected.status === 'RESOURCE_ASSIGNED' && <p className="hint">Hospital mais próximo com equipe disponível, ambulância e equipe alocados automaticamente nesta simulação. Nenhuma equipe real foi acionada.</p>}
         {selected.status === 'REQUESTED' && <p className="hint">Sem despacho automático: falta localização válida ou recurso disponível. Esta ocorrência permanece na fila da central.</p>}
         {medical && <section className="info-card" aria-labelledby="medical-heading">
           <h3 id="medical-heading">Informações de saúde</h3>
