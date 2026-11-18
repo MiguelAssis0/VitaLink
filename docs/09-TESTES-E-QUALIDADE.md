@@ -1,17 +1,20 @@
 # Estratégia de qualidade
 
 ## Backend
+
 - JUnit 5 + Mockito: state machine, regras de autorização, validade de grants, retenção e idempotência.
 - Spring Boot Test + Testcontainers/PostgreSQL: transações, migrações Flyway, queries com filtros, isolamento institucional.
 - Security regression: 401 sem sessão; 403/404 em acesso indevido; CSRF; cross-tenant; IDOR; mass assignment; dupla requisição, rate limit.
 - Verificar senhas hash, cookies, headers, no-store nas rotas clínicas e sanitização de logs.
 
 ## Frontend
+
 - Vitest + React Testing Library: formulários, validação, avisos de simulação, falhas de API, localização negada, estados.
 - Playwright: fluxo do paciente -> central -> hospital com dados falsos, em desktop e mobile.
 - Axe ou check automatizado de acessibilidade + revisão manual teclado/screen reader.
 
 ## Testes essenciais
+
 1. Cidadão não vê ocorrência de outro cidadão, mesmo trocando ID na URL.
 2. Profissional do hospital A não vê dados atribuídos ao hospital B.
 3. Hospital não atribuído não obtém perfil médico por ID conhecido.
@@ -26,6 +29,7 @@
 12. Frontend não armazena tokens em localStorage ou dados médicos em persistência local.
 
 ## Definição de pronto
+
 - CI verde: lint, format, build, test unit/integration e verificações básicas de dependência/segredos.
 - Código sem TODO crítico em segurança, sem endpoints clínicos desprotegidos, sem credenciais reais.
 - Cobertura de domínio sensível alta, alvo inicial >= 85% das classes de negócio críticas; não confundir percentual com qualidade.

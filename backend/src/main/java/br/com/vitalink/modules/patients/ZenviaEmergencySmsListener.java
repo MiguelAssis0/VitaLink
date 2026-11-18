@@ -1,6 +1,9 @@
 package br.com.vitalink.modules.patients;
 
-import br.com.vitalink.modules.emergencies.EmergencyRegisteredEvent;
+import java.net.http.HttpClient;
+import java.time.Duration;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,9 +15,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
-import java.net.http.HttpClient;
-import java.time.Duration;
-import java.util.List;
+import br.com.vitalink.modules.emergencies.EmergencyRegisteredEvent;
 
 @Component
 public class ZenviaEmergencySmsListener {
@@ -42,7 +43,8 @@ public class ZenviaEmergencySmsListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onEmergencyRegistered(EmergencyRegisteredEvent event) {
-        if (!enabled) return;
+        if (!enabled)
+            return;
         if (apiToken.isBlank() || sender.isBlank()) {
             log.warn("SMS de ajuda não configurado; nenhum envio feito para solicitação {}", event.emergencyId());
             return;
@@ -73,26 +75,38 @@ public class ZenviaEmergencySmsListener {
     }
 
     static String normalizeBrazilianPhone(String phone) {
-        if (phone == null) return null;
+        if (phone == null)
+            return null;
         var digits = phone.replaceAll("\\D", "");
-        if (digits.startsWith("55") && (digits.length() == 12 || digits.length() == 13)) return "+" + digits;
-        if (digits.length() == 10 || digits.length() == 11) return "+55" + digits;
-        if (digits.startsWith("0") && (digits.length() == 11 || digits.length() == 12)) return "+55" + digits.substring(1);
-        if (digits.startsWith("0") && (digits.length() == 13 || digits.length() == 14)) return "+55" + digits.substring(3);
+        if (digits.startsWith("55") && (digits.length() == 12 || digits.length() == 13))
+            return "+" + digits;
+        if (digits.length() == 10 || digits.length() == 11)
+            return "+55" + digits;
+        if (digits.startsWith("0") && (digits.length() == 11 || digits.length() == 12))
+            return "+55" + digits.substring(1);
+        if (digits.startsWith("0") && (digits.length() == 13 || digits.length() == 14))
+            return "+55" + digits.substring(3);
         return null;
     }
 
     private static String message(EmergencyRegisteredEvent event) {
         var location = new StringBuilder();
-        if (event.address() != null && !event.address().isBlank()) location.append("Endereço: ").append(event.address().strip());
+        if (event.address() != null && !event.address().isBlank())
+            location.append("Endereço: ").append(event.address().strip());
         if (event.latitude() != null && event.longitude() != null) {
-            if (!location.isEmpty()) location.append('\n');
-            location.append("Mapa: https://maps.google.com/?q=").append(event.latitude()).append(',').append(event.longitude());
+            if (!location.isEmpty())
+                location.append('\n');
+            location.append("Mapa: https://maps.google.com/?q=").append(event.latitude()).append(',')
+                    .append(event.longitude());
         }
-        if (location.isEmpty()) return null;
+        if (location.isEmpty())
+            return null;
         return "Pedido de ajuda no VitaLink.\n" + location + "\nEntre em contato com a pessoa se puder ajudar.";
     }
 
-    private record ZenviaMessage(String from, String to, List<ZenviaText> contents) { }
-    private record ZenviaText(String type, String text) { }
+    private record ZenviaMessage(String from, String to, List<ZenviaText> contents) {
+    }
+
+    private record ZenviaText(String type, String text) {
+    }
 }

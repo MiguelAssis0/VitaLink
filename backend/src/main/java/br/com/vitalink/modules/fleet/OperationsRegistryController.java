@@ -1,26 +1,35 @@
 package br.com.vitalink.modules.fleet;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import br.com.vitalink.modules.audit.AuditService;
 import br.com.vitalink.modules.auth.DemoPrincipal;
+import br.com.vitalink.modules.emergencies.EmergencyRepository;
+import br.com.vitalink.modules.emergencies.EmergencyStatus;
 import br.com.vitalink.modules.hospital.AmbulanceCrewMember;
 import br.com.vitalink.modules.hospital.AmbulanceCrewRepository;
 import br.com.vitalink.modules.hospital.HospitalPatient;
 import br.com.vitalink.modules.hospital.HospitalPatientRepository;
-import br.com.vitalink.modules.emergencies.EmergencyRepository;
-import br.com.vitalink.modules.emergencies.EmergencyStatus;
-import br.com.vitalink.modules.audit.AuditService;
 import br.com.vitalink.shared.api.Api;
 import br.com.vitalink.shared.domain.Role;
 import br.com.vitalink.shared.errors.ApiException;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
-
-@RestController @RequestMapping("/api/v1")
+@RestController
+@RequestMapping("/api/v1")
 public class OperationsRegistryController {
     private final AmbulanceRepository ambulances;
     private final AmbulanceCrewRepository crew;
@@ -29,61 +38,72 @@ public class OperationsRegistryController {
     private final EmergencyRepository emergencies;
 
     public OperationsRegistryController(AmbulanceRepository ambulances, AmbulanceCrewRepository crew,
-                                        HospitalPatientRepository patients, AuditService audit, EmergencyRepository emergencies) {
-        this.ambulances=ambulances; this.crew=crew; this.patients=patients; this.audit=audit; this.emergencies=emergencies;
+            HospitalPatientRepository patients, AuditService audit, EmergencyRepository emergencies) {
+        this.ambulances = ambulances;
+        this.crew = crew;
+        this.patients = patients;
+        this.audit = audit;
+        this.emergencies = emergencies;
     }
 
     @GetMapping("/central/ambulances")
     public List<Api.AmbulanceResponse> ambulances(@AuthenticationPrincipal DemoPrincipal principal) {
-        var central=central(principal);
+        var central = central(principal);
         return ambulances.findByCentralIdOrderByCodeAsc(central.getId()).stream().map(this::ambulanceResponse).toList();
     }
 
-    @PostMapping("/central/ambulances") @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/central/ambulances")
+    @ResponseStatus(HttpStatus.CREATED)
     public Api.AmbulanceResponse addAmbulance(@AuthenticationPrincipal DemoPrincipal principal,
-                                               @Valid @RequestBody Api.AmbulanceRequest body) {
-        var central=central(principal);
-        var code=body.code().strip();
-        if (ambulances.existsByCentralIdAndCodeIgnoreCase(central.getId(),code)) throw ApiException.conflict("Já existe uma ambulância com esse identificador.");
-        var created=ambulances.save(new Ambulance(central,code,AmbulanceStatus.AVAILABLE));
-        audit.record(principal.user(),"AMBULANCE_CREATED","AMBULANCE",created.id);
+            @Valid @RequestBody Api.AmbulanceRequest body) {
+        var central = central(principal);
+        var code = body.code().strip();
+        if (ambulances.existsByCentralIdAndCodeIgnoreCase(central.getId(), code))
+            throw ApiException.conflict("Já existe uma ambulância com esse identificador.");
+        var created = ambulances.save(new Ambulance(central, code, AmbulanceStatus.AVAILABLE));
+        audit.record(principal.user(), "AMBULANCE_CREATED", "AMBULANCE", created.id);
         return ambulanceResponse(created);
     }
 
     @PutMapping("/central/ambulances/{id}/status")
     public Api.AmbulanceResponse updateAmbulanceStatus(@AuthenticationPrincipal DemoPrincipal principal,
             @PathVariable UUID id, @Valid @RequestBody Api.AmbulanceStatusRequest body) {
-        var central=central(principal);
-        var ambulance=ambulances.findById(id).filter(item -> item.central.getId().equals(central.getId())).orElseThrow(ApiException::notFound);
-        ambulance.status=body.status();
-        var updated=ambulances.save(ambulance);
-        audit.record(principal.user(),"AMBULANCE_STATUS_UPDATED","AMBULANCE",updated.id);
+        var central = central(principal);
+        var ambulance = ambulances.findById(id).filter(item -> item.central.getId().equals(central.getId()))
+                .orElseThrow(ApiException::notFound);
+        ambulance.status = body.status();
+        var updated = ambulances.save(ambulance);
+        audit.record(principal.user(), "AMBULANCE_STATUS_UPDATED", "AMBULANCE", updated.id);
         return ambulanceResponse(updated);
     }
 
     @PutMapping("/central/ambulances/{id}/location")
     public Api.AmbulanceResponse updateAmbulanceLocation(@AuthenticationPrincipal DemoPrincipal principal,
             @PathVariable UUID id, @Valid @RequestBody Api.AmbulanceLocationRequest body) {
-        var central=central(principal);
-        var ambulance=ambulances.findById(id).filter(item -> item.central.getId().equals(central.getId())).orElseThrow(ApiException::notFound);
-        ambulance.latitude=body.latitude(); ambulance.longitude=body.longitude();
-        var updated=ambulances.save(ambulance);
-        audit.record(principal.user(),"AMBULANCE_LOCATION_UPDATED","AMBULANCE",updated.id);
+        var central = central(principal);
+        var ambulance = ambulances.findById(id).filter(item -> item.central.getId().equals(central.getId()))
+                .orElseThrow(ApiException::notFound);
+        ambulance.latitude = body.latitude();
+        ambulance.longitude = body.longitude();
+        var updated = ambulances.save(ambulance);
+        audit.record(principal.user(), "AMBULANCE_LOCATION_UPDATED", "AMBULANCE", updated.id);
         return ambulanceResponse(updated);
     }
 
     @GetMapping("/hospital/ambulance-crew")
     public List<Api.AmbulanceCrewResponse> crew(@AuthenticationPrincipal DemoPrincipal principal) {
-        var hospital=hospital(principal);
-        audit.record(principal.user(),"HOSPITAL_CREW_LIST_READ","HOSPITAL_CREW",null);
+        var hospital = hospital(principal);
+        audit.record(principal.user(), "HOSPITAL_CREW_LIST_READ", "HOSPITAL_CREW", null);
         return crew.findByHospitalIdOrderByNameAsc(hospital.getId()).stream().map(this::crewResponse).toList();
     }
 
-    @PostMapping("/hospital/ambulance-crew") @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/hospital/ambulance-crew")
+    @ResponseStatus(HttpStatus.CREATED)
     public Api.AmbulanceCrewResponse addCrewMember(@AuthenticationPrincipal DemoPrincipal principal,
             @Valid @RequestBody Api.AmbulanceCrewRequest body) {
-        var member=crew.save(new AmbulanceCrewMember(hospital(principal),body.name().strip(),body.position().strip(),safe(body.phone())));
-        audit.record(principal.user(),"HOSPITAL_CREW_REGISTERED","HOSPITAL_CREW",member.id);
+        var member = crew.save(new AmbulanceCrewMember(hospital(principal), body.name().strip(),
+                body.position().strip(), safe(body.phone())));
+        audit.record(principal.user(), "HOSPITAL_CREW_REGISTERED", "HOSPITAL_CREW", member.id);
         return crewResponse(member);
     }
 
@@ -91,47 +111,61 @@ public class OperationsRegistryController {
     @Transactional
     public Api.AmbulanceCrewResponse updateCrewAvailability(@AuthenticationPrincipal DemoPrincipal principal,
             @PathVariable UUID id, @Valid @RequestBody Api.AmbulanceCrewAvailabilityRequest body) {
-        var hospital=hospital(principal);
-        var member=crew.lockByIdAndHospitalId(id,hospital.getId()).orElseThrow(ApiException::notFound);
+        var hospital = hospital(principal);
+        var member = crew.lockByIdAndHospitalId(id, hospital.getId()).orElseThrow(ApiException::notFound);
         if (emergencies.hasActiveCrewAssignment(id, List.of(EmergencyStatus.REQUESTED, EmergencyStatus.ACKNOWLEDGED,
-                EmergencyStatus.RESOURCE_ASSIGNED, EmergencyStatus.EN_ROUTE, EmergencyStatus.ON_SCENE, EmergencyStatus.CANCEL_REQUESTED)))
+                EmergencyStatus.RESOURCE_ASSIGNED, EmergencyStatus.EN_ROUTE, EmergencyStatus.ON_SCENE,
+                EmergencyStatus.CANCEL_REQUESTED)))
             throw ApiException.conflict("A equipe está alocada a uma ocorrência em andamento.");
-        member.available=body.available();
-        audit.record(principal.user(),"HOSPITAL_CREW_AVAILABILITY_UPDATED","HOSPITAL_CREW",member.id);
+        member.available = body.available();
+        audit.record(principal.user(), "HOSPITAL_CREW_AVAILABILITY_UPDATED", "HOSPITAL_CREW", member.id);
         return crewResponse(crew.save(member));
     }
 
     @GetMapping("/hospital/patients")
     public List<Api.HospitalPatientResponse> patients(@AuthenticationPrincipal DemoPrincipal principal) {
-        var hospital=hospital(principal);
-        audit.record(principal.user(),"HOSPITAL_PATIENT_LIST_READ","HOSPITAL_PATIENT",null);
-        return patients.findByHospitalIdOrderByCreatedAtDesc(hospital.getId()).stream().map(this::patientResponse).toList();
+        var hospital = hospital(principal);
+        audit.record(principal.user(), "HOSPITAL_PATIENT_LIST_READ", "HOSPITAL_PATIENT", null);
+        return patients.findByHospitalIdOrderByCreatedAtDesc(hospital.getId()).stream().map(this::patientResponse)
+                .toList();
     }
 
-    @PostMapping("/hospital/patients") @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/hospital/patients")
+    @ResponseStatus(HttpStatus.CREATED)
     public Api.HospitalPatientResponse addPatient(@AuthenticationPrincipal DemoPrincipal principal,
             @Valid @RequestBody Api.HospitalPatientRequest body) {
-        var patient=patients.save(new HospitalPatient(hospital(principal),body.name().strip(),body.birthDate(),safe(body.phone())));
-        audit.record(principal.user(),"HOSPITAL_PATIENT_REGISTERED","HOSPITAL_PATIENT",patient.id);
+        var patient = patients.save(
+                new HospitalPatient(hospital(principal), body.name().strip(), body.birthDate(), safe(body.phone())));
+        audit.record(principal.user(), "HOSPITAL_PATIENT_REGISTERED", "HOSPITAL_PATIENT", patient.id);
         return patientResponse(patient);
     }
 
     private Api.AmbulanceResponse ambulanceResponse(Ambulance item) {
-        return new Api.AmbulanceResponse(item.id,item.code,item.status,item.latitude,item.longitude);
+        return new Api.AmbulanceResponse(item.id, item.code, item.status, item.latitude, item.longitude);
     }
+
     private Api.AmbulanceCrewResponse crewResponse(AmbulanceCrewMember item) {
-        return new Api.AmbulanceCrewResponse(item.id,item.name,item.position,item.phone,item.available,item.createdAt);
+        return new Api.AmbulanceCrewResponse(item.id, item.name, item.position, item.phone, item.available,
+                item.createdAt);
     }
+
     private Api.HospitalPatientResponse patientResponse(HospitalPatient item) {
-        return new Api.HospitalPatientResponse(item.id,item.name,item.birthDate,item.phone,item.createdAt);
+        return new Api.HospitalPatientResponse(item.id, item.name, item.birthDate, item.phone, item.createdAt);
     }
+
     private static br.com.vitalink.modules.institutions.Institution central(DemoPrincipal principal) {
-        if (principal==null || principal.user().role!=Role.DISPATCHER || principal.user().institution==null) throw ApiException.forbidden();
+        if (principal == null || principal.user().role != Role.DISPATCHER || principal.user().institution == null)
+            throw ApiException.forbidden();
         return principal.user().institution;
     }
+
     private static br.com.vitalink.modules.institutions.Institution hospital(DemoPrincipal principal) {
-        if (principal==null || principal.user().role!=Role.HOSPITAL_STAFF || principal.user().institution==null) throw ApiException.forbidden();
+        if (principal == null || principal.user().role != Role.HOSPITAL_STAFF || principal.user().institution == null)
+            throw ApiException.forbidden();
         return principal.user().institution;
     }
-    private static String safe(String value) { return value==null?"":value.strip(); }
+
+    private static String safe(String value) {
+        return value == null ? "" : value.strip();
+    }
 }

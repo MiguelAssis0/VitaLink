@@ -1,4 +1,4 @@
-import { getPasskeyAuthenticationOptions, getPasskeyRegistrationOptions, loginWithPasskey, savePasskey } from '../../api'
+import { getPasskeyAuthenticationOptions, getPasskeyRegistrationOptions, loginWithPasskey, savePasskey } from '../../api';
 
 type CredentialDescriptorJson = { id: string; type?: 'public-key'; transports?: AuthenticatorTransport[] }
 type CreationOptionsJson = Record<string, unknown> & { challenge: string; user: { id: string }; excludeCredentials?: CredentialDescriptorJson[] }
@@ -21,9 +21,9 @@ function credentialJson(credential: PublicKeyCredential) {
   const data = response instanceof AuthenticatorAttestationResponse
     ? { attestationObject: encode(response.attestationObject), clientDataJSON: encode(response.clientDataJSON) }
     : {
-        authenticatorData: encode((response as AuthenticatorAssertionResponse).authenticatorData), clientDataJSON: encode(response.clientDataJSON),
-        signature: encode((response as AuthenticatorAssertionResponse).signature), userHandle: encode((response as AuthenticatorAssertionResponse).userHandle),
-      }
+      authenticatorData: encode((response as AuthenticatorAssertionResponse).authenticatorData), clientDataJSON: encode(response.clientDataJSON),
+      signature: encode((response as AuthenticatorAssertionResponse).signature), userHandle: encode((response as AuthenticatorAssertionResponse).userHandle),
+    }
   return {
     id: credential.id, rawId: encode(credential.rawId), type: credential.type,
     response: data, clientExtensionResults: credential.getClientExtensionResults(),
@@ -34,10 +34,12 @@ function credentialJson(credential: PublicKeyCredential) {
 export async function registerPasskey() {
   if (!navigator.credentials?.create || !window.isSecureContext) throw new Error('Este navegador precisa oferecer passkeys em uma conexão segura.')
   const options = await getPasskeyRegistrationOptions() as CreationOptionsJson
-  const credential = await navigator.credentials.create({ publicKey: {
-    ...options, challenge: decode(options.challenge), user: { ...options.user, id: decode(options.user.id) },
-    excludeCredentials: options.excludeCredentials?.map((item) => ({ ...item, id: decode(item.id) })),
-  } as PublicKeyCredentialCreationOptions })
+  const credential = await navigator.credentials.create({
+    publicKey: {
+      ...options, challenge: decode(options.challenge), user: { ...options.user, id: decode(options.user.id) },
+      excludeCredentials: options.excludeCredentials?.map((item) => ({ ...item, id: decode(item.id) })),
+    } as PublicKeyCredentialCreationOptions
+  })
   if (!(credential instanceof PublicKeyCredential)) throw new Error('O aparelho não criou uma chave de acesso.')
   await savePasskey(credentialJson(credential))
 }
@@ -45,10 +47,12 @@ export async function registerPasskey() {
 export async function authenticatePasskey() {
   if (!navigator.credentials?.get || !window.isSecureContext) throw new Error('Este navegador precisa oferecer passkeys em uma conexão segura.')
   const options = await getPasskeyAuthenticationOptions() as RequestOptionsJson
-  const credential = await navigator.credentials.get({ publicKey: {
-    ...options, challenge: decode(options.challenge),
-    allowCredentials: options.allowCredentials?.map((item) => ({ ...item, id: decode(item.id) })),
-  } as PublicKeyCredentialRequestOptions })
+  const credential = await navigator.credentials.get({
+    publicKey: {
+      ...options, challenge: decode(options.challenge),
+      allowCredentials: options.allowCredentials?.map((item) => ({ ...item, id: decode(item.id) })),
+    } as PublicKeyCredentialRequestOptions
+  })
   if (!(credential instanceof PublicKeyCredential)) throw new Error('O aparelho não verificou uma chave de acesso.')
   return loginWithPasskey(credentialJson(credential))
 }

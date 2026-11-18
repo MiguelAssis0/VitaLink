@@ -1,15 +1,18 @@
 # Arquitetura de referência
 
 ## Stack
+
 - React + TypeScript + Vite; React Router, TanStack Query, React Hook Form + Zod; Tailwind CSS (versão estável compatível com ambiente); ícones Lucide; acessibilidade nativa.
 - Java 21 + Spring Boot (linha estável compatível com Java 21 escolhida no início e registrada no README); Spring Web, Spring Security, Spring Data JPA, Bean Validation, Actuator, Flyway.
 - PostgreSQL 16+ em Docker para desenvolvimento; Testcontainers em integração.
 - Gradle ou Maven (preferir Maven para configuração inicial mais simples), npm com lockfile.
 
 ## Modelo
+
 Monólito modular, REST. Módulos `auth`, `patients`, `medical-profile`, `emergencies`, `dispatch-simulation`, `institutions`, `audit`, `shared`.
 
 Fluxo:
+
 ```text
 React patient/central/hospital
        | HTTPS + cookie de sessão seguro
@@ -24,6 +27,7 @@ Spring Boot REST + RBAC/ABAC
 ```
 
 ## Estrutura sugerida
+
 ```text
 vitalink/
   README.md
@@ -44,6 +48,7 @@ vitalink/
 ```
 
 ## Regras técnicas
+
 - Domain state machine centralizada em serviço de domínio, nunca espalhada em controllers.
 - Controllers recebem DTOs validados e retornam DTOs minimizados; entidades JPA nunca expostas diretamente.
 - `@Transactional` em use cases; `@Version` optimistic locking para atualização concorrente, 409 em conflito.
@@ -54,6 +59,7 @@ vitalink/
 - Adicionar ADR curto para decisões divergentes.
 
 ## Tratamento de falhas
+
 - `ProblemDetail`/RFC 9457 ou estrutura compatível: code, title, detail seguro, correlationId, timestamp. Nunca stacktrace para o cliente.
 - Erros 400 de validação; 401 sessão ausente; 403 sem permissão; 404 recursos invisíveis (quando necessário para evitar enumeração); 409 conflito/idempotência; 429 limite; 500 genérico.
 - Operação de criação somente exibe sucesso depois do commit; cliente trata retries usando idempotency key estável.

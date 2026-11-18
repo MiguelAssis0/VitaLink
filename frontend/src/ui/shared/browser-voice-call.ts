@@ -6,7 +6,7 @@ export async function createVoicePeer(audio: HTMLAudioElement, onConnected: () =
     stream.getTracks().forEach(track => peer.addTrack(track, stream))
     peer.ontrack = event => {
       audio.srcObject = event.streams[0]
-      void audio.play().catch(() => {})
+      void audio.play().catch(() => { })
     }
     peer.onconnectionstatechange = () => {
       if (peer.connectionState === 'connected') onConnected()

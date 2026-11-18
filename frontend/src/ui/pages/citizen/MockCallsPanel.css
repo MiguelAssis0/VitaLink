@@ -14,7 +14,7 @@
   margin: 6px 0 0;
 }
 
-.mock-call-card > p {
+.mock-call-card>p {
   max-width: 720px;
   margin: 10px 0 18px;
   font-size: 14px;
@@ -95,7 +95,7 @@
   font-size: 13px;
 }
 
-.mock-call-history li > span:first-child {
+.mock-call-history li>span:first-child {
   display: grid;
   gap: 3px;
 }
@@ -108,10 +108,30 @@
 }
 
 @media (max-width: 600px) {
-  .mock-call-card { padding: 18px; }
-  .mock-call-heading { display: grid; gap: 10px; }
-  .mock-call-options { display: grid; }
-  .mock-call-options > * { width: 100%; }
-  .mock-call-active { align-items: flex-start; flex-wrap: wrap; }
-  .mock-call-actions { width: 100%; padding-left: 24px; }
+  .mock-call-card {
+    padding: 18px;
+  }
+
+  .mock-call-heading {
+    display: grid;
+    gap: 10px;
+  }
+
+  .mock-call-options {
+    display: grid;
+  }
+
+  .mock-call-options>* {
+    width: 100%;
+  }
+
+  .mock-call-active {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .mock-call-actions {
+    width: 100%;
+    padding-left: 24px;
+  }
 }

@@ -1,5 +1,32 @@
-.voice-call-control { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 14px 0; }
-.patient-voice-call { position: fixed; z-index: 100; right: 18px; bottom: 88px; width: min(420px, calc(100vw - 36px)); padding: 22px; border: 1px solid var(--border, #cbd7de); border-radius: 16px; background: var(--surface, #fff); box-shadow: 0 16px 50px #102a3a35; }
-.patient-voice-call h2 { margin: 8px 0; }
-.patient-voice-call p { color: var(--muted, #536575); }
-.patient-voice-call .button-row { margin-top: 14px; }
+.voice-call-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.patient-voice-call {
+  position: fixed;
+  z-index: 100;
+  right: 18px;
+  bottom: 88px;
+  width: min(420px, calc(100vw - 36px));
+  padding: 22px;
+  border: 1px solid var(--border, #cbd7de);
+  border-radius: 16px;
+  background: var(--surface, #fff);
+  box-shadow: 0 16px 50px #102a3a35;
+}
+
+.patient-voice-call h2 {
+  margin: 8px 0;
+}
+
+.patient-voice-call p {
+  color: var(--muted, #536575);
+}
+
+.patient-voice-call .button-row {
+  margin-top: 14px;
+}

@@ -12,5 +12,7 @@
 }
 
 @media (max-width: 760px) {
-  .passkey-enrollment small { display: none; }
+  .passkey-enrollment small {
+    display: none;
+  }
 }

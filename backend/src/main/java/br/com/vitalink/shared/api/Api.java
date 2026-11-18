@@ -1,81 +1,194 @@
 package br.com.vitalink.shared.api;
 
-import br.com.vitalink.modules.emergencies.EmergencyStatus;
-import br.com.vitalink.modules.fleet.AmbulanceStatus;
-
-import br.com.vitalink.shared.domain.Role;
-
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.vitalink.modules.emergencies.EmergencyStatus;
+import br.com.vitalink.modules.fleet.AmbulanceStatus;
+import br.com.vitalink.shared.domain.Role;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+
 public final class Api {
-    private Api() {}
-    public record LoginRequest(@NotBlank @Email String email, @NotBlank @Size(max=200) String password) {}
-    public record PasswordResetRequest(@NotBlank @Email @Size(max=254) String email) {}
-    public record PasswordResetConfirmRequest(@NotBlank @Size(max=100) String token,
-            @NotBlank @Size(min=8,max=200) @Pattern(regexp="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,200}$") String password) {}
-    public record RegisterRequest(@NotBlank @Size(max=120) String displayName, @NotBlank @Email @Size(max=254) String email,
-                                  @NotBlank @Size(min=8,max=200) @Pattern(regexp="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,200}$") String password,
-                                  @NotNull @AssertTrue Boolean adultConfirmed) {}
-    public record RegistrationResponse(String message) {}
-    public record UserResponse(UUID id, String displayName, String email, Role role, String institutionName) {}
-    public record Location(@NotNull LocationSource source, @Size(max=300) String address, @Size(max=200) String reference,
-                    @DecimalMin("-90.0") @DecimalMax("90.0") Double latitude,
-                    @DecimalMin("-180.0") @DecimalMax("180.0") Double longitude,
-                    @DecimalMin("0.0") @DecimalMax("100000.0") Double accuracyMeters) {}
-    public record CreateEmergencyRequest(@NotNull @Valid Location location, @Size(max=500) String notes) {}
-    public record EmergencyResponse(UUID id, boolean simulation, EmergencyStatus status, long version, String message, Instant createdAt,
-                                    String ambulanceCode, String hospitalName, boolean crewAssigned) {}
-    public record VoiceCallResponse(UUID id, UUID emergencyId, String status, String offer, String answer) {}
-    public record VoiceSdpRequest(@NotBlank @Size(max=100000) String sdp) {}
-    public record VoiceSummaryRequest(@NotBlank @Size(max=500) String summary) {}
-    public record LiveTokenResponse(String token, String model) {}
-    public record TransitionRequest(@NotNull EmergencyStatus status, @NotNull @PositiveOrZero Long expectedVersion) {}
-    public record AssignmentRequest(@NotNull UUID hospitalInstitutionId) {}
-    public record EmergencySummary(UUID id, boolean simulation, EmergencyStatus status, String locationSource, String address,
-                            String reference, Double latitude, Double longitude, Double accuracyMeters, String notes,
-                            long version, Instant createdAt, String hospitalName, String ambulanceCode, boolean crewAssigned) {}
-    public record HospitalEmergencySummary(UUID id, boolean simulation, EmergencyStatus status, long version, Instant createdAt,
-                                           String ambulanceCode, boolean crewAssigned, List<String> crewMemberNames, String notes) {}
-    public record MedicalProfileRequest(@Size(max=240) String address, @Size(max=1000) String allergies, @Size(max=1000) String medications,
-                                 @Size(max=1000) String conditions, @Size(max=1000) String notes) {}
-    public record MedicalProfileResponse(String address, String allergies, String medications, String conditions, String notes,
-                                  boolean selfReported, Instant updatedAt) {}
-    public record BasicProfileRequest(@NotBlank @Size(max=120) String displayName, @Size(max=30) String phone, @Size(max=240) String address) {}
-    public record BasicProfileResponse(String displayName, String email, String phone, String address) {}
-    public record EmergencyContactRequest(@NotBlank @Size(max=120) String name, @NotBlank @Size(max=30) String phone,
-            @Size(max=80) String relationship, Boolean smsOptIn) {}
-    public record EmergencyContactResponse(UUID id, String name, String phone, String relationship, boolean smsOptIn) {}
-    public record PrivacyRequestBody(@NotNull PrivacyRequestType type) {}
-    public record PrivacyRequestResponse(UUID id, PrivacyRequestType type, String status, Instant createdAt, Instant completedAt) {}
-    public record PatientDataExport(Instant exportedAt, Instant accountCreatedAt, BasicProfileResponse profile, MedicalProfileResponse medicalProfile,
+    private Api() {
+    }
+
+    public record LoginRequest(@NotBlank @Email String email, @NotBlank @Size(max = 200) String password) {
+    }
+
+    public record PasswordResetRequest(@NotBlank @Email @Size(max = 254) String email) {
+    }
+
+    public record PasswordResetConfirmRequest(@NotBlank @Size(max = 100) String token,
+            @NotBlank @Size(min = 8, max = 200) @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,200}$") String password) {
+    }
+
+    public record RegisterRequest(@NotBlank @Size(max = 120) String displayName,
+            @NotBlank @Email @Size(max = 254) String email,
+            @NotBlank @Size(min = 8, max = 200) @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,200}$") String password,
+            @NotNull @AssertTrue Boolean adultConfirmed) {
+    }
+
+    public record RegistrationResponse(String message) {
+    }
+
+    public record UserResponse(UUID id, String displayName, String email, Role role, String institutionName) {
+    }
+
+    public record Location(@NotNull LocationSource source, @Size(max = 300) String address,
+            @Size(max = 200) String reference,
+            @DecimalMin("-90.0") @DecimalMax("90.0") Double latitude,
+            @DecimalMin("-180.0") @DecimalMax("180.0") Double longitude,
+            @DecimalMin("0.0") @DecimalMax("100000.0") Double accuracyMeters) {
+    }
+
+    public record CreateEmergencyRequest(@NotNull @Valid Location location, @Size(max = 500) String notes) {
+    }
+
+    public record EmergencyResponse(UUID id, boolean simulation, EmergencyStatus status, long version, String message,
+            Instant createdAt,
+            String ambulanceCode, String hospitalName, boolean crewAssigned) {
+    }
+
+    public record VoiceCallResponse(UUID id, UUID emergencyId, String status, String offer, String answer) {
+    }
+
+    public record VoiceSdpRequest(@NotBlank @Size(max = 100000) String sdp) {
+    }
+
+    public record VoiceSummaryRequest(@NotBlank @Size(max = 500) String summary) {
+    }
+
+    public record LiveTokenResponse(String token, String model) {
+    }
+
+    public record TransitionRequest(@NotNull EmergencyStatus status, @NotNull @PositiveOrZero Long expectedVersion) {
+    }
+
+    public record AssignmentRequest(@NotNull UUID hospitalInstitutionId) {
+    }
+
+    public record EmergencySummary(UUID id, boolean simulation, EmergencyStatus status, String locationSource,
+            String address,
+            String reference, Double latitude, Double longitude, Double accuracyMeters, String notes,
+            long version, Instant createdAt, String hospitalName, String ambulanceCode, boolean crewAssigned) {
+    }
+
+    public record HospitalEmergencySummary(UUID id, boolean simulation, EmergencyStatus status, long version,
+            Instant createdAt,
+            String ambulanceCode, boolean crewAssigned, List<String> crewMemberNames, String notes) {
+    }
+
+    public record MedicalProfileRequest(@Size(max = 240) String address, @Size(max = 1000) String allergies,
+            @Size(max = 1000) String medications,
+            @Size(max = 1000) String conditions, @Size(max = 1000) String notes) {
+    }
+
+    public record MedicalProfileResponse(String address, String allergies, String medications, String conditions,
+            String notes,
+            boolean selfReported, Instant updatedAt) {
+    }
+
+    public record BasicProfileRequest(@NotBlank @Size(max = 120) String displayName, @Size(max = 30) String phone,
+            @Size(max = 240) String address) {
+    }
+
+    public record BasicProfileResponse(String displayName, String email, String phone, String address) {
+    }
+
+    public record EmergencyContactRequest(@NotBlank @Size(max = 120) String name,
+            @NotBlank @Size(max = 30) String phone,
+            @Size(max = 80) String relationship, Boolean smsOptIn) {
+    }
+
+    public record EmergencyContactResponse(UUID id, String name, String phone, String relationship, boolean smsOptIn) {
+    }
+
+    public record PrivacyRequestBody(@NotNull PrivacyRequestType type) {
+    }
+
+    public record PrivacyRequestResponse(UUID id, PrivacyRequestType type, String status, Instant createdAt,
+            Instant completedAt) {
+    }
+
+    public record PatientDataExport(Instant exportedAt, Instant accountCreatedAt, BasicProfileResponse profile,
+            MedicalProfileResponse medicalProfile,
             List<EmergencyContactResponse> emergencyContacts, List<ExportedEmergency> emergencies,
-            List<PrivacyRequestResponse> privacyRequests) {}
-    public record PrivacyRequestResult(PrivacyRequestResponse request, PatientDataExport export) {}
-    public record ExportedEmergency(UUID id, boolean simulation, EmergencyStatus status, String locationSource, String address,
+            List<PrivacyRequestResponse> privacyRequests) {
+    }
+
+    public record PrivacyRequestResult(PrivacyRequestResponse request, PatientDataExport export) {
+    }
+
+    public record ExportedEmergency(UUID id, boolean simulation, EmergencyStatus status, String locationSource,
+            String address,
             String reference, Double latitude, Double longitude, Double accuracyMeters, String notes, Instant createdAt,
-            List<TimelineEvent> timeline) {}
-    public enum PrivacyRequestType { EXPORT, DELETION }
+            List<TimelineEvent> timeline) {
+    }
+
+    public enum PrivacyRequestType {
+        EXPORT, DELETION
+    }
+
     public record MedicalSummary(String patientDisplayName, String allergies, String medications, String conditions,
-                         String notes, boolean selfReported, Instant updatedAt) {}
-    public record TimelineEvent(String oldStatus, EmergencyStatus status, Role actorRole, String actorLabel, Instant occurredAt) {}
-    public record AdminOverview(long users, long institutions, long emergencies, long openEmergencies, long pendingDeletions) {}
-    public record AmbulanceRequest(@NotBlank @Size(max=24) String code) {}
+            String notes, boolean selfReported, Instant updatedAt) {
+    }
+
+    public record TimelineEvent(String oldStatus, EmergencyStatus status, Role actorRole, String actorLabel,
+            Instant occurredAt) {
+    }
+
+    public record AdminOverview(long users, long institutions, long emergencies, long openEmergencies,
+            long pendingDeletions) {
+    }
+
+    public record AmbulanceRequest(@NotBlank @Size(max = 24) String code) {
+    }
+
     public record AmbulanceLocationRequest(@NotNull @DecimalMin("-90.0") @DecimalMax("90.0") Double latitude,
-            @NotNull @DecimalMin("-180.0") @DecimalMax("180.0") Double longitude) {}
-    public record AmbulanceStatusRequest(@NotNull AmbulanceStatus status) {}
-    public record AmbulanceResponse(UUID id, String code, AmbulanceStatus status, Double latitude, Double longitude) {}
-    public record AmbulanceCrewRequest(@NotBlank @Size(max=120) String name, @NotBlank @Size(max=80) String position,
-                                      @Size(max=30) String phone) {}
-    public record AmbulanceCrewAvailabilityRequest(@NotNull Boolean available) {}
-    public record AmbulanceCrewResponse(UUID id, String name, String position, String phone, boolean available, Instant createdAt) {}
-    public record HospitalPatientRequest(@NotBlank @Size(max=120) String name, @NotNull @Past LocalDate birthDate,
-                                         @Size(max=30) String phone) {}
-    public record HospitalPatientResponse(UUID id, String name, LocalDate birthDate, String phone, Instant createdAt) {}
-    public record ErrorResponse(String code, String title, String detail, Instant timestamp) {}
-    public enum LocationSource { BROWSER, MANUAL }
+            @NotNull @DecimalMin("-180.0") @DecimalMax("180.0") Double longitude) {
+    }
+
+    public record AmbulanceStatusRequest(@NotNull AmbulanceStatus status) {
+    }
+
+    public record AmbulanceResponse(UUID id, String code, AmbulanceStatus status, Double latitude, Double longitude) {
+    }
+
+    public record AmbulanceCrewRequest(@NotBlank @Size(max = 120) String name,
+            @NotBlank @Size(max = 80) String position,
+            @Size(max = 30) String phone) {
+    }
+
+    public record AmbulanceCrewAvailabilityRequest(@NotNull Boolean available) {
+    }
+
+    public record AmbulanceCrewResponse(UUID id, String name, String position, String phone, boolean available,
+            Instant createdAt) {
+    }
+
+    public record HospitalPatientRequest(@NotBlank @Size(max = 120) String name, @NotNull @Past LocalDate birthDate,
+            @Size(max = 30) String phone) {
+    }
+
+    public record HospitalPatientResponse(UUID id, String name, LocalDate birthDate, String phone, Instant createdAt) {
+    }
+
+    public record ErrorResponse(String code, String title, String detail, Instant timestamp) {
+    }
+
+    public enum LocationSource {
+        BROWSER, MANUAL
+    }
 }

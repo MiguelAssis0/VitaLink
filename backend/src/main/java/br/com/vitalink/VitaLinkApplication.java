@@ -7,5 +7,7 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport;
 @SpringBootApplication
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 public class VitaLinkApplication {
-    public static void main(String[] args) { SpringApplication.run(VitaLinkApplication.class, args); }
+    public static void main(String[] args) {
+        SpringApplication.run(VitaLinkApplication.class, args);
+    }
 }

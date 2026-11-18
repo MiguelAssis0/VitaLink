@@ -21,7 +21,7 @@ export function PatientVoiceCallReceiver() {
     const poll = () => void getIncomingVoiceCall().then(latest => {
       setCall(latest)
       if (!latest || latest.status === 'ENDED' || latest.status === 'DECLINED') cleanup()
-    }).catch(() => {})
+    }).catch(() => { })
     poll()
     const timer = window.setInterval(poll, 1500)
     return () => { window.clearInterval(timer); cleanup() }
@@ -33,7 +33,7 @@ export function PatientVoiceCallReceiver() {
     try {
       const media = await createVoicePeer(audio.current!, () => {
         window.dispatchEvent(new Event('vitalink:dispatcher-call-connected'))
-        void connectVoiceCall(call.id).then(setCall).catch(() => {})
+        void connectVoiceCall(call.id).then(setCall).catch(() => { })
       })
       peer.current = media.peer; stream.current = media.stream
       await media.peer.setRemoteDescription({ type: 'offer', sdp: call.offer })
@@ -50,13 +50,13 @@ export function PatientVoiceCallReceiver() {
 
   async function decline() {
     if (!call) return
-    await declineVoiceCall(call.id).catch(() => {})
+    await declineVoiceCall(call.id).catch(() => { })
     cleanup(); setCall(current => current ? { ...current, status: 'DECLINED' } : null)
   }
 
   async function hangup() {
     if (!call) return
-    await endVoiceCall(call.id).catch(() => {})
+    await endVoiceCall(call.id).catch(() => { })
     cleanup(); setCall(current => current ? { ...current, status: 'ENDED' } : null)
   }
 

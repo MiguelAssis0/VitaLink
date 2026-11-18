@@ -3,9 +3,11 @@
 > **PROTÓTIPO / SIMULAÇÃO — NÃO ACIONA AMBULÂNCIAS REAIS.**
 
 ## Missão
+
 Construir uma aplicação web demonstrável de coordenação de solicitações de emergência, com cadastro de perfil de saúde do paciente, central de regulação fictícia e painel hospitalar fictício, garantindo isolamento de dados, rastreabilidade, acessibilidade e um caminho seguro para futuras integrações institucionais.
 
 ## Ordem de leitura obrigatória
+
 1. `01-PRODUTO-E-ESCOPO.md`
 2. `02-REQUISITOS-FUNCIONAIS.md`
 3. `03-REQUISITOS-NAO-FUNCIONAIS.md`
@@ -21,7 +23,10 @@ Construir uma aplicação web demonstrável de coordenação de solicitações d
 13. `13-DECISOES-E-RISCOS.md`
 14. `14-FONTES.md`
 
+Para consulta visual complementar, veja [`16-DIAGRAMAS.md`](16-DIAGRAMAS.md), que contém a arquitetura implementada e o DER consolidado pelas migrations Flyway.
+
 ## Instruções para agente de codificação
+
 - Implementar código funcional incremental, não apenas mockups ou documentação.
 - Nunca inventar conectividade com SAMU, ambulâncias ou hospitais; não criar endpoints externos para serviço público nem automações de disparo de chamadas reais.
 - Uso de **dados sintéticos apenas** em seed, screenshots e testes. Não coletar dados médicos reais para demonstração.
@@ -34,7 +39,9 @@ Construir uma aplicação web demonstrável de coordenação de solicitações d
 - Antes de terminar, fazer auto-revisão de segurança, tratamento de erros, manutenção e UX.
 
 ## Pronto quando
+
 Todos os cenários de `11-CRITERIOS-DE-ACEITE.md` forem reproduzíveis em ambiente local por uma pessoa que acabou de clonar o repositório. Evitar alegações de prontidão para uso clínico ou emergencial real.
 
 ## Modalidade de entrega
+
 **Obrigatoriamente WEBAPP** React/TypeScript acessado via navegador, responsivo e com PWA instalável (quando suportado). Consulte `15-WEBAPP-E-PWA.md`. Não construir aplicativos nativos.
